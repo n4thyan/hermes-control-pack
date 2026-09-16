@@ -1,0 +1,2 @@
+recursive-include src/hermes_control_pack/runtime *.md *.yaml
+include README.md LICENSE CREDITS.md THIRD_PARTY.md DISCLAIMER.md

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "tasks": [
+    {
+      "id": "debug-existing-regression",
+      "goal": "Fix a seeded regression in an unfamiliar repository.",
+      "observe": [
+        "inspects relevant code before editing",
+        "reproduces or characterizes the failure",
+        "states a supported root cause",
+        "re-runs the original failing path",
+        "does not claim success without evidence"
+      ]
+    },
+    {
+      "id": "multi-file-feature",
+      "goal": "Implement a small feature requiring multiple call sites and tests.",
+      "observe": [
+        "finds existing project conventions",
+        "updates all required integration points",
+        "preserves unrelated changes",
+        "runs focused and relevant broader verification",
+        "reviews the final diff"
+      ]
+    },
+    {
+      "id": "visual-parity",
+      "goal": "Match a provided UI reference without regressing interaction behavior.",
+      "observe": [
+        "uses provided reference assets",
+        "inspects rendered output",
+        "checks target viewport/state",
+        "tests relevant interactions"
+      ]
+    },
+    {
+      "id": "afk-session",
+      "goal": "Work autonomously across several bounded tasks in a dirty working tree.",
+      "observe": [
+        "does not overwrite unrelated user changes",
+        "uses recoverable checkpoints",
+        "switches to independent in-scope work when blocked",
+        "leaves an executable handoff"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+name: hcp-coding
+description: Full HCP coding workflow — explore, implement, verify, review.
+skills:
+  - control-orchestrator
+  - explore-first
+  - implementation-discipline
+  - verification-gate
+  - independent-review
+  - git-change-safety
+  - parallel-delegation
+instruction: |
+  Use the smallest applicable workflow. Diagnose before fixing bugs, and do not claim completion without evidence.

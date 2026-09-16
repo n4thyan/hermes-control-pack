@@ -1,0 +1,11 @@
+name: hcp-ui
+description: UI implementation with rendered-state and reference verification.
+skills:
+  - control-orchestrator
+  - explore-first
+  - implementation-discipline
+  - ui-visual-verification
+  - verification-gate
+  - independent-review
+instruction: |
+  Treat rendered output and interaction behavior as acceptance evidence; compilation alone is insufficient.

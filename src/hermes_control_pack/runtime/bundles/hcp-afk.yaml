@@ -1,0 +1,13 @@
+name: hcp-afk
+description: Bounded autonomous coding for unattended work sessions.
+skills:
+  - control-orchestrator
+  - afk-autonomy
+  - implementation-discipline
+  - verification-gate
+  - independent-review
+  - context-handoff
+  - git-change-safety
+  - parallel-delegation
+instruction: |
+  Make autonomous progress within the user's existing scope. Work in recoverable checkpoints and leave a concrete evidence-based handoff.

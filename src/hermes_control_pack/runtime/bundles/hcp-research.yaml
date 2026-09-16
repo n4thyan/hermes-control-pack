@@ -1,0 +1,9 @@
+name: hcp-research
+description: Source-grounded research and synthesis workflow.
+skills:
+  - research-evidence
+  - parallel-delegation
+  - independent-review
+  - context-handoff
+instruction: |
+  Separate sourced facts from interpretation, prefer primary/current evidence, and cross-check material claims.

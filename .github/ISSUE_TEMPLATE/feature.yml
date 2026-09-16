@@ -1,0 +1,24 @@
+name: Feature request
+description: Propose a transferable Hermes control, analysis, skill, bundle, or evaluation improvement.
+title: "[feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What concrete agent-harness problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed mechanism
+      description: Describe the behavior, evidence, and how it maps to Hermes.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification
+      description: How would we know the change actually improves the target behavior?

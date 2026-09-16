@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hermes-control-pack"
+version = "1.0.0"
+description = "Research-driven control, orchestration, and verification pack for NousResearch Hermes Agent"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "n4thyan"}]
+dependencies = []
+keywords = ["hermes-agent", "agents", "prompt-engineering", "orchestration", "verification"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/n4thyan/hermes-control-pack"
+Repository = "https://github.com/n4thyan/hermes-control-pack"
+Issues = "https://github.com/n4thyan/hermes-control-pack/issues"
+Upstream-Corpus = "https://github.com/asgeirtj/system_prompts_leaks"
+Hermes-Agent = "https://github.com/NousResearch/hermes-agent"
+
+[project.scripts]
+hcp = "hermes_control_pack.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+hermes_control_pack = [
+  "runtime/skills/*/SKILL.md",
+  "runtime/bundles/*.yaml",
+]

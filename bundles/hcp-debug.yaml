@@ -1,0 +1,10 @@
+name: hcp-debug
+description: Evidence-first debugging with regression verification.
+skills:
+  - explore-first
+  - root-cause-debugging
+  - verification-gate
+  - independent-review
+  - git-change-safety
+instruction: |
+  Reproduce or characterize the failure, trace to the divergence, patch the cause, then re-run the original failing path.

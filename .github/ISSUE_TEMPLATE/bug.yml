@@ -1,0 +1,24 @@
+name: Bug report
+description: Report a reproducible HCP compiler, installer, runtime-asset, or documentation defect.
+title: "[bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Include commands, HCP version, OS, Python version, and the smallest reproducible corpus/project layout.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Relevant output, traceback, or generated report excerpts. Remove secrets and raw private prompt text.
