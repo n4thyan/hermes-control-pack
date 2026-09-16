@@ -69,7 +69,20 @@ Requirements:
 - Hermes Agent installed for runtime use
 - a local ZIP/checkout of the research corpus you want to analyze
 
-### Install HCP
+### Easiest option: let Hermes set itself up
+
+If Hermes Agent is already running, paste this directly into Hermes:
+
+```text
+Set up Hermes Control Pack for this Hermes installation using:
+https://github.com/n4thyan/hermes-control-pack
+
+Read the repository README and relevant installation/compatibility docs first, then install and configure HCP end to end yourself. Inspect my current Hermes installation before changing anything. Preserve and back up any existing SOUL.md, .hermes.md, skills, bundles, plugins, config, and user customizations before replacing or merging them. Prefer HCP's supported plugin/integration path over patching Hermes core. Install the recommended runtime assets and default balanced setup, run HCP's doctor/validation checks, verify the HCP skills/bundles/integration actually load, and diagnose any failures instead of stopping at the first error. Do not delete unrelated files or user data. At the end, briefly report what you installed, what you backed up, what verification passed, and any optional features that remain unconfigured.
+```
+
+A longer version with extra safeguards is in [docs/SELF_SETUP_PROMPT.md](docs/SELF_SETUP_PROMPT.md).
+
+### Manual install
 
 ```bash
 git clone https://github.com/n4thyan/hermes-control-pack.git
