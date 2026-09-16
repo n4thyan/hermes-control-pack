@@ -33,6 +33,19 @@ This report proves which local research corpus was scanned by Hermes Control Pac
 | `Pi` | 1 |
 | `assets` | 1 |
 
+## Artifact classification
+
+| Artifact kind | Files |
+|---|---:|
+| `prompt_or_notes` | 205 |
+| `skill` | 166 |
+| `agent_prompt` | 62 |
+| `asset` | 32 |
+| `source` | 13 |
+| `documentation` | 7 |
+| `system_prompt` | 5 |
+| `command` | 3 |
+
 ## Control-pattern signal coverage
 
 These counts are deterministic keyword/phrase hits used as a coverage signal, not an evaluation score.

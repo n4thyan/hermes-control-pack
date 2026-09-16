@@ -1,22 +1,30 @@
 # Hermes compatibility
 
-HCP targets the current Hermes Agent architecture documented by Nous Research.
+HCP 2.0 is designed around documented Hermes extension contracts rather than source patches.
 
-## Surfaces HCP intentionally uses
+## APIs used
 
-- **Project context:** `.hermes.md` / `HERMES.md` is Hermes' highest-priority project context type.
-- **Global personality:** HCP does **not** replace `SOUL.md`; personality remains user-controlled.
-- **Skills:** installed under `~/.hermes/skills/` (or the active `HERMES_HOME`).
-- **Skill bundles:** installed under `~/.hermes/skill-bundles/`.
-- **Delegation:** HCP's orchestration rules assume Hermes can delegate/subagent independent work when the active runtime/toolset exposes that capability.
-- **Built-in planning:** Hermes has a built-in `/plan`, so HCP does not ship a duplicate planning skill.
+`hcp-runtime` uses:
 
-## Compatibility philosophy
+- `ctx.register_system_prompt_section()` for a frozen/cache-safe system kernel;
+- `ctx.register_tool()` for HCP state/decision/evidence tools;
+- `ctx.register_hook("pre_llm_call", ...)` for dynamic continuity injection;
+- `post_tool_call`, `post_api_request`, `api_request_error`, and session hooks for observable telemetry;
+- `pre_verify` for the bounded completion-evidence gate;
+- `ctx.register_command()` for `/hcp-status`.
 
-HCP avoids patching Hermes internals. It uses public extension surfaces — project context, skills, bundles, and ordinary CLI/file installation — so Hermes can continue to update independently.
+The optional continuity engine subclasses `agent.context_compressor.ContextCompressor` and exposes the standard context-engine `name`/`compress` contract. HCP passes structured state via `memory_context` and otherwise delegates compression to Hermes.
 
-If Hermes changes a public path/schema, update HCP's installer/assets and tests rather than pinning to private internals.
+## Upgrade policy
 
-## Reference
+HCP prefers a compatibility failure over silently patching Hermes internals. `hcp doctor` checks installed runtime assets, and CI exercises the HCP package independently on supported Python versions.
 
-Official documentation: https://hermes-agent.nousresearch.com/docs/
+If a future Hermes release changes an extension signature, HCP should adapt its plugin/engine layer. Core Hermes patches are a last resort and, if ever required, should be version/hash-gated and explicitly documented.
+
+## Context-engine activation
+
+Hermes intentionally does not auto-activate third-party context engines. `hcp setup` is an explicit user-invoked installer, so its recommended flow installs and selects `hcp-continuity`. Users can opt out with `--no-context-engine` or revert with:
+
+```bash
+hermes config set context.engine compressor
+```

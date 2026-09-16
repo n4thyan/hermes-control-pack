@@ -1,0 +1,3 @@
+name: hcp-continuity
+version: 2.0.0
+description: HCP structured-state-aware wrapper around Hermes ContextCompressor.

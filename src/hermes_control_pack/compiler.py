@@ -6,13 +6,14 @@ import json
 import shutil
 
 from . import __version__
-from .analyzer import signal_markdown
+from .analyzer import mechanism_coverage, mechanism_markdown, signal_markdown
 from .corpus import build_index
 from .kernel import KERNEL
 
 
 def coverage_markdown(index: dict) -> str:
     top = "\n".join(f"| `{k}` | {v} |" for k, v in index["top_level_counts"].items())
+    artifacts = "\n".join(f"| `{k}` | {v} |" for k, v in index.get("artifact_counts", {}).items())
     cats = "\n".join(f"| `{k}` | {v} |" for k, v in index["category_hits"].items())
     return f"""# Corpus Coverage Report
 
@@ -29,6 +30,12 @@ This report proves which local research corpus was scanned by Hermes Control Pac
 | Group | Files |
 |---|---:|
 {top}
+
+## Artifact classification
+
+| Artifact kind | Files |
+|---|---:|
+{artifacts}
 
 ## Control-pattern signal coverage
 
@@ -53,12 +60,19 @@ def _manifest(output: Path, index: dict) -> dict:
     for path in sorted(p for p in output.rglob("*") if p.is_file() and p.name != "hcp-manifest.json"):
         artifacts[path.relative_to(output).as_posix()] = _sha256(path)
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "hcp_version": __version__,
         "corpus_fingerprint": index["source_sha256"],
         "corpus_entries": index["entry_count"],
+        "mechanism_count": len(mechanism_coverage(index)),
         "artifacts": artifacts,
     }
+
+
+def _asset_source(project_root: Path | None, runtime_root: Path, dirname: str) -> Path:
+    if project_root and (project_root / dirname).exists():
+        return project_root / dirname
+    return runtime_root / dirname
 
 
 def build_pack(source: Path, output: Path, project_root: Path | None = None) -> dict:
@@ -74,16 +88,21 @@ def build_pack(source: Path, output: Path, project_root: Path | None = None) -> 
     (output / ".hermes.md").write_text(KERNEL, encoding="utf-8")
     (output / "CORPUS_COVERAGE.md").write_text(coverage_markdown(index), encoding="utf-8")
     (output / "RESEARCH_SIGNALS.md").write_text(signal_markdown(index), encoding="utf-8")
+    mechanisms = mechanism_coverage(index)
+    (output / "MECHANISMS.json").write_text(json.dumps(mechanisms, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (output / "MECHANISM_MATRIX.md").write_text(mechanism_markdown(index), encoding="utf-8")
 
     runtime_root = Path(__file__).resolve().parent / "runtime"
-    # Prefer repository assets during development, but always fall back to packaged assets.
-    asset_root = project_root if project_root and (project_root / "skills").exists() else runtime_root
-    for dirname in ("skills", "bundles"):
-        src = asset_root / dirname
+    for dirname in ("skills", "bundles", "souls", "plugins"):
+        src = _asset_source(project_root, runtime_root, dirname)
         dst = output / dirname
         if not src.exists():
             raise FileNotFoundError(f"HCP runtime asset directory missing: {src}")
-        shutil.copytree(src, dst)
+        shutil.copytree(
+            src,
+            dst,
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"),
+        )
 
     manifest = _manifest(output, index)
     (output / "hcp-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

@@ -38,3 +38,6 @@ jobs:
       - run: python -m pip wheel . -w dist
       - run: python -m pip install --force-reinstall dist/*.whl
       - run: hcp --version
+      - run: hcp setup --project "$RUNNER_TEMP/hcp-project" --hermes-home "$RUNNER_TEMP/hcp-home" --no-context-engine
+      - run: hcp doctor --project "$RUNNER_TEMP/hcp-project" --hermes-home "$RUNNER_TEMP/hcp-home"
+      - run: hcp setup --help

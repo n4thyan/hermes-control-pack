@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from collections import defaultdict
-from typing import Iterable
+from .mechanisms import mechanism_specs
 
 NOISE_GROUPS = {"assets", ".github", "[root]", ""}
 
@@ -27,13 +26,35 @@ def cross_source_coverage(index: dict) -> dict[str, dict[str, int]]:
     return result
 
 
+def mechanism_coverage(index: dict) -> dict[str, dict]:
+    groups = set(meaningful_groups(index))
+    files = index.get("provider_mechanism_files", {})
+    hits = index.get("provider_mechanism_hits", {})
+    specs = mechanism_specs()
+    result: dict[str, dict] = {}
+    for name in specs:
+        supporting = sorted(g for g in groups if files.get(g, {}).get(name, 0) > 0)
+        paths = [
+            entry["path"] for entry in index.get("entries", [])
+            if entry.get("mechanism_hits", {}).get(name, 0) > 0 and entry.get("top_level") not in NOISE_GROUPS
+        ]
+        result[name] = {
+            "purpose": specs[name].purpose,
+            "hcp_target": specs[name].hcp_target,
+            "source_groups": supporting,
+            "source_group_count": len(supporting),
+            "files": sum(files.get(g, {}).get(name, 0) for g in supporting),
+            "hits": sum(hits.get(g, {}).get(name, 0) for g in supporting),
+            "example_paths": paths[:8],
+        }
+    return result
+
+
 def signal_markdown(index: dict) -> str:
     coverage = cross_source_coverage(index)
     rows = "\n".join(
         f"| `{cat}` | {values['source_groups']} | {values['files']:,} | {values['hits']:,} |"
-        for cat, values in sorted(
-            coverage.items(), key=lambda kv: (-kv[1]["source_groups"], -kv[1]["files"], kv[0])
-        )
+        for cat, values in sorted(coverage.items(), key=lambda kv: (-kv[1]["source_groups"], -kv[1]["files"], kv[0]))
     )
     groups = meaningful_groups(index)
     group_rows = "\n".join(
@@ -68,3 +89,22 @@ The last column sums per-category file presence and therefore can exceed the num
 
 HCP deliberately converts this evidence into authored, vendor-neutral operating procedures. It does not concatenate source prompts, reproduce proprietary tool schemas, or treat keyword frequency as an instruction priority.
 """
+
+
+def mechanism_markdown(index: dict) -> str:
+    coverage = mechanism_coverage(index)
+    rows = []
+    for name, item in sorted(coverage.items(), key=lambda kv: (-kv[1]["source_group_count"], -kv[1]["files"], kv[0])):
+        groups = ", ".join(item["source_groups"][:8])
+        if len(item["source_groups"]) > 8:
+            groups += ", …"
+        rows.append(
+            f"| `{name}` | {item['source_group_count']} | {item['files']:,} | `{item['hcp_target']}` | {groups} |"
+        )
+    return """# Agent Mechanism Matrix
+
+HCP treats the supplied corpus as an **agent-architecture dataset**. This matrix records where transferable mechanisms are observed across independent top-level source families. It contains metadata and authored generalizations, not copied prompt passages.
+
+| Mechanism | Source groups | Files | HCP implementation target | Example supporting groups |
+|---|---:|---:|---|---|
+""" + "\n".join(rows) + "\n\n## Interpretation\n\nA mechanism's presence does not prove that it is optimal. HCP implements mechanisms as hypotheses and validates them with Hermes benchmarks. `source_groups` is breadth evidence, not a vendor score.\n"

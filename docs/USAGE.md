@@ -1,99 +1,88 @@
 # Usage
 
-## Install from GitHub
+## Recommended setup
+
+From a cloned HCP checkout:
 
 ```bash
-git clone https://github.com/n4thyan/hermes-control-pack.git
-cd hermes-control-pack
 python -m pip install .
+hcp setup --project /path/to/project
+hcp doctor --project /path/to/project
 ```
 
-Python 3.11+ is required.
+`hcp setup` does not require the research corpus. It installs the packaged runtime assets, enables `hcp-runtime` when the Hermes CLI is available, merges the balanced SOUL overlay, initializes `.hcp/state`, and installs/selects `hcp-continuity`.
 
-## Build from the upstream corpus
-
-Use either a ZIP or a checked-out directory:
+Useful variants:
 
 ```bash
-hcp build ~/Downloads/system_prompts_leaks-main.zip --out build/hcp
+# Keep Hermes' normal compressor
+hcp setup --project . --no-context-engine
+
+# Use coder SOUL overlay
+hcp setup --project . --soul coder
+
+# Keep existing SOUL completely untouched
+hcp setup --project . --no-soul
+
+# Also install the generic project .hermes.md fallback
+hcp setup --project . --project-context
 ```
 
-or:
+For a non-default Hermes profile/home:
 
 ```bash
-hcp build ~/src/system_prompts_leaks --out build/hcp
+hcp setup --project . --hermes-home /path/to/hermes/home
 ```
 
-A build contains the corpus metadata index, coverage reports, execution kernel, skills, bundles, and a deterministic artifact manifest.
+HCP passes the same `HERMES_HOME` to Hermes CLI enable/config commands, so setup does not accidentally configure a different profile.
 
-## Install into a project
+## Advanced/manual install
+
+`hcp install` exposes individual layers. When `--build` is omitted it uses runtime assets packaged with HCP:
 
 ```bash
-hcp install --build build/hcp --project ~/src/my-project
+hcp install --project . --soul balanced --context-engine --select-context-engine --enable-plugin
 ```
 
-This installs:
-
-- `~/src/my-project/.hermes.md`
-- HCP skills under `${HERMES_HOME:-~/.hermes}/skills/`
-- HCP bundles under `${HERMES_HOME:-~/.hermes}/skill-bundles/`
-
-Existing differing files are protected. Use `--force` to create timestamped backups and replace them.
-
-### Keep an existing `.hermes.md`
+Install from a reproducible corpus build instead:
 
 ```bash
-hcp install --build build/hcp --project ~/src/my-project --no-context
+hcp build /path/to/corpus.zip --out build/hcp
+hcp install --build build/hcp --project . --soul balanced
 ```
 
-You can then manually incorporate the parts of HCP's generated `.hermes.md` that fit your project.
+Project `.hermes.md`, skills, bundles, and plugins are protected from unrequested replacement. Use `--force` to back up and replace differing HCP-managed files. SOUL is handled differently: HCP owns only a marked managed block and preserves user-authored text around it.
 
-### Install only context
+## State commands
 
 ```bash
-hcp install --build build/hcp --project ~/src/my-project --no-skills --no-bundles
+hcp state show --project .
+hcp state show --project . --scope task
+hcp state show --project . --scope evidence
+hcp trace --project . --limit 50
 ```
 
-## Validate a build
+Manually patch task/project state when useful:
 
 ```bash
-hcp doctor --build build/hcp --project ~/src/my-project
+hcp state set --project . --scope task --json '{"objective":"Finish renderer","phase":"VERIFY"}'
 ```
 
-`doctor` checks Python compatibility, build structure, Hermes CLI visibility, and target paths. Hermes itself is optional for compiling/scanning, but required to use the installed pack.
-
-## Analyze without installing
+## Research commands
 
 ```bash
-hcp scan corpus.zip --out corpus-index.json
-hcp analyze corpus.zip --out RESEARCH_SIGNALS.md
+hcp scan corpus.zip
+hcp analyze corpus.zip
+hcp mechanisms corpus.zip
+hcp build corpus.zip --out build/hcp
 ```
 
-`scan` writes detailed metadata for every corpus file. `analyze` writes aggregate cross-source signal coverage without reproducing source passages.
+These commands are for corpus research/recompilation and are not required for runtime setup.
 
-## Use the bundles in Hermes
-
-After installation, start Hermes inside the project and invoke a bundle:
-
-```text
-/hcp-coding implement the requested feature and verify it end to end
-/hcp-debug find the root cause of this failing login flow
-/hcp-ui match this screen to the provided reference and test the interactions
-/hcp-afk finish the remaining in-scope work while I am away
-/hcp-research investigate the current API behavior and cite primary sources
-```
-
-You can also load individual HCP skills directly with their slash-command names.
-
-## Updating HCP
-
-Pull the repository, reinstall the Python package, rebuild against the latest local corpus, then reinstall with `--force` if HCP-managed runtime files changed:
+## Reverting the context engine
 
 ```bash
-git pull
-python -m pip install . --upgrade
-hcp build /path/to/latest-corpus.zip --out build/hcp
-hcp install --build build/hcp --project /path/to/project --force
+hermes config set context.engine compressor
 ```
 
-Backups are created before differing installed HCP files are replaced.
+The installed HCP engine/plugin files can remain present while inactive.

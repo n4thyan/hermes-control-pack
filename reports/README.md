@@ -1,14 +1,10 @@
-# Bootstrap reports
+# Bootstrap research reports
 
-These reports were generated from the bootstrap `system_prompts_leaks` archive identified by `sources/bootstrap-source-lock.json`.
+These reports are deterministic aggregate outputs from the HCP bootstrap corpus snapshot. They intentionally contain metadata, authored mechanism generalizations, counts, hashes, and example source paths rather than republishing the raw prompt corpus.
 
-They contain aggregate counts and hashes only — no raw captured prompt passages.
+- `bootstrap-corpus-coverage.md` — corpus/source-family coverage.
+- `bootstrap-research-signals.md` — behavior-family breadth signals.
+- `bootstrap-mechanism-matrix.md` — transferable mechanism breadth and HCP implementation target.
+- `bootstrap-mechanisms.json` — machine-readable mechanism coverage/provenance.
 
-- `bootstrap-corpus-coverage.md` — file/source-family and behavior-signal totals.
-- `bootstrap-research-signals.md` — cross-source breadth for each behavior family.
-
-Regenerate from your own corpus snapshot with:
-
-```bash
-hcp build /path/to/corpus.zip --out build/hcp
-```
+The exact input fingerprint is recorded in `sources/bootstrap-source-lock.json`.

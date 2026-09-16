@@ -1,0 +1,569 @@
+{
+  "task_intent_routing": {
+    "purpose": "Distinguish explain/plan/diagnose/implement/review outcomes before acting.",
+    "hcp_target": "system+runtime",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Mistral",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 12,
+    "files": 133,
+    "hits": 3103,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/Explore.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/statusline-setup.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md"
+    ]
+  },
+  "inspect_before_edit": {
+    "purpose": "Ground mutations in repository/code evidence.",
+    "hcp_target": "system+skill",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 11,
+    "files": 132,
+    "hits": 9473,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/Explore.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/general-purpose.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md"
+    ]
+  },
+  "root_cause_debugging": {
+    "purpose": "Reproduce, trace, hypothesize, patch cause, re-test.",
+    "hcp_target": "skill",
+    "source_groups": [
+      "Anthropic",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "OpenAI",
+      "xAI"
+    ],
+    "source_group_count": 8,
+    "files": 55,
+    "hits": 390,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.8.md"
+    ]
+  },
+  "evidence_gated_completion": {
+    "purpose": "Require observed checks before completion claims.",
+    "hcp_target": "runtime+system",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Mistral",
+      "Notion",
+      "OpenAI",
+      "OpenCode",
+      "xAI"
+    ],
+    "source_group_count": 12,
+    "files": 110,
+    "hits": 1273,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.8.md"
+    ]
+  },
+  "independent_review": {
+    "purpose": "Challenge completed work with a separate review pass.",
+    "hcp_target": "skill+subagent",
+    "source_groups": [
+      "Anthropic",
+      "Google",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "OpenAI",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 8,
+    "files": 84,
+    "hits": 1937,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.8.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-5.md"
+    ]
+  },
+  "parallel_delegation": {
+    "purpose": "Fan out independent work with bounded subagent contracts.",
+    "hcp_target": "skill+runtime",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 11,
+    "files": 91,
+    "hits": 2011,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/Explore.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/claude-code-guide.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/claude.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/general-purpose.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md"
+    ]
+  },
+  "context_compaction": {
+    "purpose": "Keep long-running work viable by reducing transcript pressure.",
+    "hcp_target": "context-engine",
+    "source_groups": [
+      "Anthropic",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Mistral",
+      "Notion",
+      "OpenAI",
+      "OpenCode",
+      "xAI"
+    ],
+    "source_group_count": 11,
+    "files": 130,
+    "hits": 2848,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/statusline-setup.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md"
+    ]
+  },
+  "persistent_memory_routing": {
+    "purpose": "Route durable facts/procedures to the right persistence layer.",
+    "hcp_target": "runtime+memory",
+    "source_groups": [
+      "Anthropic",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "OpenAI",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 9,
+    "files": 89,
+    "hits": 3848,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/claude-code-guide.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-46.6.md"
+    ]
+  },
+  "structured_handoff": {
+    "purpose": "Preserve goal/current-state/failures/next actions across boundaries.",
+    "hcp_target": "runtime+skill",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Mistral",
+      "Notion",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 13,
+    "files": 185,
+    "hits": 4094,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/anthropic-interviewer.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/statusline-setup.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md"
+    ]
+  },
+  "visual_verification": {
+    "purpose": "Treat rendered UI state as evidence for visual work.",
+    "hcp_target": "runtime+skill",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Mistral",
+      "OpenAI",
+      "Perplexity",
+      "Py",
+      "Qwen",
+      "xAI"
+    ],
+    "source_group_count": 13,
+    "files": 251,
+    "hits": 19710,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/claude-code-guide.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md"
+    ]
+  },
+  "git_change_safety": {
+    "purpose": "Protect user changes and review final repository deltas.",
+    "hcp_target": "system+skill",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Misc",
+      "OpenAI",
+      "OpenCode",
+      "xAI"
+    ],
+    "source_group_count": 9,
+    "files": 53,
+    "hits": 1273,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/Explore.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/Plan.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md"
+    ]
+  },
+  "failure_recovery": {
+    "purpose": "Change strategy after failures instead of looping or stopping prematurely.",
+    "hcp_target": "runtime+system",
+    "source_groups": [
+      "Anthropic",
+      "Google",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "OpenAI",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 8,
+    "files": 112,
+    "hits": 1412,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md"
+    ]
+  },
+  "interruption_resume": {
+    "purpose": "Preserve coherent state across user steering and interrupted turns.",
+    "hcp_target": "runtime",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 11,
+    "files": 130,
+    "hits": 1379,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.8.md"
+    ]
+  },
+  "prompt_cache_stability": {
+    "purpose": "Keep stable prompt bytes separate from per-turn context.",
+    "hcp_target": "runtime",
+    "source_groups": [
+      "Anthropic",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Notion",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 10,
+    "files": 98,
+    "hits": 1817,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/statusline-setup.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md"
+    ]
+  },
+  "provider_adaptation": {
+    "purpose": "Adapt request/prompt behavior to provider/model contracts without identity copying.",
+    "hcp_target": "runtime",
+    "source_groups": [
+      "Anthropic",
+      "Google",
+      "Meta",
+      "Misc",
+      "OpenAI",
+      "Perplexity",
+      "Pi",
+      "xAI"
+    ],
+    "source_group_count": 8,
+    "files": 208,
+    "hits": 8036,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/README.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/Explore.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/claude-code-guide.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/general-purpose.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/statusline-setup.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md"
+    ]
+  },
+  "source_grounding": {
+    "purpose": "Ground research claims in current/primary sources and provenance.",
+    "hcp_target": "skill",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "DeepSeek",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Mistral",
+      "Notion",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "Pi",
+      "Qwen",
+      "xAI"
+    ],
+    "source_group_count": 16,
+    "files": 306,
+    "hits": 20080,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/anthropic_reminders.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/claude-code-guide.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/general-purpose.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/archive/glob-tool.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/archive/grep-tool.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md"
+    ]
+  },
+  "bounded_autonomy": {
+    "purpose": "Continue independently while respecting scope and consequential-action boundaries.",
+    "hcp_target": "system+skill",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 10,
+    "files": 129,
+    "hits": 1509,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/anthropic-interviewer.md",
+      "system_prompts_leaks-main/Anthropic/anthropic_reminders.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/agents/claude-code-guide.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md"
+    ]
+  },
+  "tool_evidence_reuse": {
+    "purpose": "Reuse tool results and avoid redundant rediscovery.",
+    "hcp_target": "system",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Mistral",
+      "Notion",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 13,
+    "files": 144,
+    "hits": 3008,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.8.md"
+    ]
+  },
+  "state_machine_execution": {
+    "purpose": "Maintain explicit task phase/state across long tool loops.",
+    "hcp_target": "runtime",
+    "source_groups": [
+      "Anthropic",
+      "Cursor",
+      "Google",
+      "Kimi",
+      "Meta",
+      "Microsoft",
+      "Misc",
+      "Mistral",
+      "Notion",
+      "OpenAI",
+      "OpenCode",
+      "Perplexity",
+      "xAI"
+    ],
+    "source_group_count": 13,
+    "files": 176,
+    "hits": 7051,
+    "example_paths": [
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-desktop-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-docs-assistant.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-fable-5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-haiku-4.5.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-headless-fable-5.1.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.6.md",
+      "system_prompts_leaks-main/Anthropic/claude-code/claude-code-opus-4.7.md"
+    ]
+  }
+}

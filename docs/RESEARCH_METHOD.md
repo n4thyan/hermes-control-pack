@@ -1,62 +1,66 @@
-# Research Method
+# Research method
 
-## Goal
+HCP treats captured system prompts and agent instructions as an **agent-architecture research corpus**, not as a monolithic prompt to copy into Hermes.
 
-HCP uses a broad public prompt/agent corpus to identify **transferable agent-harness mechanisms** for Hermes: task routing, exploration, planning, debugging, verification, review, delegation, context management, tool discipline, and autonomous progress.
+## Input
 
-The project deliberately avoids the claim that a leaked prompt can reproduce another model's intrinsic intelligence or private infrastructure.
+`hcp scan`, `hcp analyze`, `hcp mechanisms`, and `hcp build` accept a local ZIP or directory. Every file is indexed regardless of whether HCP recognizes its provider/product family.
 
-## Corpus
+For each entry HCP records deterministic metadata including path, byte size, SHA-256, text/binary status, approximate word count, top-level source family, artifact classification, behavior-family signals, and mechanism hits.
 
-Primary bootstrap source:
+ZIP inputs are fingerprinted from the exact archive bytes. Directory fingerprints are deterministic over ordered `(relative path, file SHA-256)` pairs.
 
-- `asgeirtj/system_prompts_leaks`
+## Two analysis levels
 
-HCP accepts arbitrary ZIPs/directories, so the analysis is reproducible against future upstream snapshots or other legally obtained corpora.
+### Behavior signals
 
-## What the scanner measures
+Behavior-family counts answer broad questions such as: how often does the supplied corpus contain language about verification, delegation, context, debugging, research, tools, Git, UI/visual work, or autonomy?
 
-HCP v1 uses deterministic phrase families as a **coverage instrument**. It records how often broad concepts appear and across how many top-level source groups/files. These numbers answer questions such as:
+These are simple reproducible coverage signals. They are not model-quality scores.
 
-- did the supplied corpus actually contain material about verification?
-- is delegation represented across multiple source families?
-- which source families were included in this exact build?
+### Transferable mechanisms
 
-The numbers do **not** mean:
+HCP 2.0 adds an authored mechanism taxonomy. Examples include:
 
-- one vendor is better than another;
-- a frequently mentioned rule should automatically have higher priority;
-- every matched phrase is semantically equivalent;
-- source prompts are authentic/current simply because they were present in the corpus.
+- inspect before edit;
+- task-intent routing;
+- root-cause debugging;
+- evidence-gated completion;
+- independent review;
+- parallel delegation;
+- context compaction;
+- persistent memory routing;
+- structured handoff;
+- visual verification;
+- Git change safety;
+- failure recovery;
+- interruption/resume;
+- prompt-cache stability;
+- provider adaptation;
+- source grounding;
+- bounded autonomy;
+- tool-evidence reuse;
+- state-machine execution.
 
-## Distillation policy
+For each mechanism the analyzer records supporting source families, file counts, raw phrase hits, example paths, purpose, and the intended HCP implementation layer.
 
-Runtime HCP instructions are authored in vendor-neutral language. We extract mechanisms, not passages.
+A mechanism appearing in many products is **breadth evidence**, not proof that it is optimal. HCP implements these mechanisms as engineering hypotheses and evaluates their effects separately.
 
-A proposed runtime rule should generally satisfy all of the following:
+## Distillation rule
 
-1. transferable to Hermes' actual tools/architecture;
-2. useful across a meaningful class of tasks;
-3. not dependent on a proprietary unavailable tool or UI;
-4. compatible with user intent and project-specific instructions;
-5. testable or operationally observable where possible.
+HCP does not concatenate raw vendor prompts into the runtime. Instead it asks:
 
-Product-specific tool schemas, branding, private URLs, UI-only instructions, model-specific identity language, and mutually contradictory instructions are not copied into the runtime kernel.
+1. What general harness behavior is being attempted?
+2. Is the mechanism transferable to Hermes?
+3. Which layer should own it: system kernel, SOUL, skill, runtime enforcement, persistent state, or provider adaptation?
+4. Can its effect be measured with observable task outcomes?
 
-## Provenance
+This avoids importing conflicting product identity, proprietary tool schemas, stale UI rules, or millions of irrelevant tokens.
 
-Generated builds include:
+## Runtime provenance
 
-- a source fingerprint;
-- every file path + SHA-256 in `corpus-index.json`;
-- aggregate source-family coverage;
-- aggregate behavior-family coverage;
-- a manifest hashing every emitted runtime artifact.
+The bootstrap source fingerprint and aggregate reports live under `sources/` and `reports/`. Generated HCP builds include their own `corpus-index.json`, `MECHANISMS.json`, mechanism matrix, and manifest hashing every emitted runtime artifact.
 
-This lets a researcher reproduce *which corpus snapshot was used* without HCP redistributing the source text.
+## Evaluation discipline
 
-## Limitations
-
-Captured prompts may be stale, altered, incomplete, mislabeled, or unauthenticated. Aggregate phrase matching is intentionally simple and can produce false positives. HCP treats the corpus as research evidence, not authoritative documentation.
-
-Future research can add opt-in semantic clustering and benchmarked A/B evaluation while keeping raw source text local.
+HCP does not infer that a mechanism improves capability merely because multiple commercial products use it. A fair comparison keeps the base model/provider/tools/task constant and measures observable outcomes such as successful completion, unnecessary clarification, premature mutation, evidence quality, regression rate, recovery behavior, token/context pressure, and cross-session continuity.

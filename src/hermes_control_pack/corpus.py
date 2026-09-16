@@ -8,14 +8,14 @@ import json
 import re
 import zipfile
 
+from .mechanisms import mechanism_hits
+
 TEXT_EXTENSIONS = {
     ".md", ".txt", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".py",
     ".js", ".jsx", ".ts", ".tsx", ".d.ts", ".sh", ".ps1", ".html", ".css",
     ".xml", ".csv", ".ini", ".cfg", ".conf", ".rst",
 }
 
-# These are intentionally broad signals. They prove coverage of operating themes;
-# they are not semantic evaluation scores and are never used to copy source text.
 CATEGORY_PATTERNS: dict[str, tuple[str, ...]] = {
     "exploration": ("explore", "inspect", "search", "read", "understand", "codebase", "repository"),
     "planning": ("plan", "todo", "approach", "strategy", "steps", "before implementing"),
@@ -33,6 +33,7 @@ CATEGORY_PATTERNS: dict[str, tuple[str, ...]] = {
     "safety": ("destructive", "permission", "credential", "secret", "security", "approval"),
 }
 
+
 @dataclass(frozen=True)
 class CorpusEntry:
     path: str
@@ -43,6 +44,8 @@ class CorpusEntry:
     text: bool
     words: int
     category_hits: dict[str, int]
+    mechanism_hits: dict[str, int]
+    artifact_kind: str
 
 
 def _is_text_path(name: str) -> bool:
@@ -72,6 +75,28 @@ def _category_hits(text: str) -> dict[str, int]:
     return hits
 
 
+def _artifact_kind(path: str, is_text: bool) -> str:
+    if not is_text:
+        return "asset"
+    low = path.lower().replace("\\", "/")
+    name = Path(low).name
+    if "/skills/" in low or low.startswith("skills/"):
+        return "skill"
+    if "/commands/" in low or low.startswith("commands/"):
+        return "command"
+    if any(token in low for token in ("/tools/", "schema", "mcp")):
+        return "tool_or_schema"
+    if any(token in low for token in ("claude-code", "/codex/", "cursor", "devin", "opencode", "commandcode", "hermes")):
+        return "agent_prompt"
+    if "system" in name or "prompt" in name:
+        return "system_prompt"
+    if name.startswith("readme") or name in {"license", "contributing.md"}:
+        return "documentation"
+    if Path(low).suffix in {".md", ".txt"}:
+        return "prompt_or_notes"
+    return "source"
+
+
 def _entry(path: str, data: bytes, strip_prefix: str | None = None) -> CorpusEntry:
     logical_path = path
     if strip_prefix and logical_path.startswith(strip_prefix + "/"):
@@ -89,6 +114,8 @@ def _entry(path: str, data: bytes, strip_prefix: str | None = None) -> CorpusEnt
         text=text_value is not None,
         words=words,
         category_hits=_category_hits(text_value or ""),
+        mechanism_hits=mechanism_hits(text_value or ""),
+        artifact_kind=_artifact_kind(logical_path, text_value is not None),
     )
 
 
@@ -115,7 +142,6 @@ def iter_entries(source: Path) -> Iterator[CorpusEntry]:
 
 
 def source_sha256(source: Path, entries: list[CorpusEntry] | None = None) -> str:
-    """Return a deterministic source fingerprint for ZIPs *and* directories."""
     source = source.expanduser().resolve()
     if source.is_file():
         h = hashlib.sha256()
@@ -140,6 +166,10 @@ def build_index(source: Path) -> dict:
     provider_category_hits: dict[str, dict[str, int]] = {}
     provider_category_files: dict[str, dict[str, int]] = {}
     extension_counts: dict[str, int] = {}
+    artifact_counts: dict[str, int] = {}
+    mechanism_totals: dict[str, int] = {}
+    provider_mechanism_hits: dict[str, dict[str, int]] = {}
+    provider_mechanism_files: dict[str, dict[str, int]] = {}
     text_files = 0
     words = 0
     byte_count = 0
@@ -147,19 +177,26 @@ def build_index(source: Path) -> dict:
     for entry in entries:
         providers[entry.top_level] = providers.get(entry.top_level, 0) + 1
         extension_counts[entry.extension or "[none]"] = extension_counts.get(entry.extension or "[none]", 0) + 1
+        artifact_counts[entry.artifact_kind] = artifact_counts.get(entry.artifact_kind, 0) + 1
         byte_count += entry.bytes
         if entry.text:
             text_files += 1
             words += entry.words
         p_hits = provider_category_hits.setdefault(entry.top_level, {})
         p_files = provider_category_files.setdefault(entry.top_level, {})
+        pm_hits = provider_mechanism_hits.setdefault(entry.top_level, {})
+        pm_files = provider_mechanism_files.setdefault(entry.top_level, {})
+        for key, value in entry.mechanism_hits.items():
+            mechanism_totals[key] = mechanism_totals.get(key, 0) + value
+            pm_hits[key] = pm_hits.get(key, 0) + value
+            pm_files[key] = pm_files.get(key, 0) + 1
         for key, value in entry.category_hits.items():
             category_totals[key] = category_totals.get(key, 0) + value
             p_hits[key] = p_hits.get(key, 0) + value
             p_files[key] = p_files.get(key, 0) + 1
 
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "source": str(source.expanduser().resolve()),
         "source_sha256": source_sha256(source, entries),
         "entry_count": len(entries),
@@ -168,10 +205,20 @@ def build_index(source: Path) -> dict:
         "total_words": words,
         "top_level_counts": dict(sorted(providers.items(), key=lambda kv: (-kv[1], kv[0]))),
         "extension_counts": dict(sorted(extension_counts.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "artifact_counts": dict(sorted(artifact_counts.items(), key=lambda kv: (-kv[1], kv[0]))),
+        "mechanism_hits": dict(sorted(mechanism_totals.items(), key=lambda kv: (-kv[1], kv[0]))),
         "category_hits": dict(sorted(category_totals.items(), key=lambda kv: (-kv[1], kv[0]))),
         "provider_category_hits": {
             provider: dict(sorted(values.items(), key=lambda kv: (-kv[1], kv[0])))
             for provider, values in sorted(provider_category_hits.items())
+        },
+        "provider_mechanism_hits": {
+            provider: dict(sorted(values.items(), key=lambda kv: (-kv[1], kv[0])))
+            for provider, values in sorted(provider_mechanism_hits.items())
+        },
+        "provider_mechanism_files": {
+            provider: dict(sorted(values.items(), key=lambda kv: (-kv[1], kv[0])))
+            for provider, values in sorted(provider_mechanism_files.items())
         },
         "provider_category_files": {
             provider: dict(sorted(values.items(), key=lambda kv: (-kv[1], kv[0])))

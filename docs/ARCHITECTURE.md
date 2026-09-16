@@ -1,106 +1,71 @@
 # Architecture
 
-Hermes Control Pack (HCP) is a **downstream agent-harness layer** for Hermes Agent. It does not replace Hermes, alter model weights, or inject the raw research corpus into every turn.
+HCP is a **model-agnostic harness augmentation layer** for Hermes Agent. It separates research input from runtime output so millions of tokens of source material do not become millions of tokens of live system prompt.
 
-## Runtime layers
+## Layers
+
+### 1. Research corpus
+
+A ZIP or directory of captured system prompts, agent instructions, skills, tool guidance, and other product internals is scanned file-by-file. HCP records hashes, source families, artifact kinds, behavior signals, and explicit transferable mechanism hits.
+
+### 2. Mechanism model
+
+The mechanism database generalizes recurring harness ideas such as inspect-before-edit, task routing, root-cause debugging, verification-gated completion, delegation, context compaction, memory routing, structured handoff, provider adaptation, visual verification, and bounded autonomy.
+
+Each mechanism has an HCP implementation target: system guidance, SOUL, skill, runtime, state, or provider adaptation. This keeps provenance separate from implementation.
+
+### 3. Packaged runtime
+
+HCP wheels contain the compiled runtime artifacts. Normal users do not need the research corpus:
+
+- `hcp-runtime` plugin;
+- `hcp-continuity` context engine;
+- 12 skills and 5 bundles;
+- four SOUL overlays;
+- project execution kernel.
+
+### 4. Persistent project state
+
+`.hcp/state` is the task-level continuity database. It is deliberately separate from the conversation transcript and Hermes' global user memory.
+
+### 5. Hermes runtime integration
+
+The plugin uses stable documented seams:
 
 ```text
-research corpus ZIP / checkout
-        │
-        ▼
-  corpus scanner
-  - every file hashed
-  - text/binary classification
-  - source-family counts
-  - aggregate behavior signals
-        │
-        ├──────────────► corpus-index.json
-        ├──────────────► CORPUS_COVERAGE.md
-        └──────────────► RESEARCH_SIGNALS.md
-
-HCP-authored runtime assets
-        │
-        ├── .hermes.md execution kernel
-        ├── skills/*/SKILL.md
-        └── bundles/*.yaml
-                 │
-                 ▼
-      compiled HCP build directory
-                 │
-                 ▼
-          safe installer
-        ┌────────┴────────┐
-        ▼                 ▼
-project/.hermes.md   ~/.hermes/skills + skill-bundles
+cache-safe system section   -> HCP runtime contract
+pre_llm_call                -> dynamic structured continuity
+model-callable HCP tools    -> state/decision/evidence updates
+post_tool_call              -> observable evidence/mutation ledger
+pre_verify                  -> bounded completion gate
+API/session observers       -> harness telemetry
 ```
 
-## Why this design
+The optional `hcp-continuity` engine subclasses Hermes' built-in compressor and adds structured state as compaction grounding.
 
-Hermes supports project context files and progressive-disclosure skills. The always-loaded kernel therefore contains only cross-task invariants. Specialized procedures are skills loaded when needed. Bundles provide ergonomic task profiles without mutating the system prompt.
+## Prompt/state hierarchy
 
-This avoids three failure modes of a giant concatenated prompt:
+Conceptually a running session sees:
 
-1. contradictory product-specific instructions;
-2. context budget wasted on irrelevant tool schemas and UI rules;
-3. stale third-party implementation details overpowering the actual repository.
+```text
+Hermes native system prompt
+  + HCP frozen runtime kernel
+  + global SOUL (including HCP managed overlay)
+  + project context if present
+  + relevant skills/bundles
+  + Hermes memory
+  + HCP dynamic project/task continuity
+  + current conversation working set
+```
 
-## Source processing
+The dynamic continuity block is not put in the frozen prompt prefix because task state changes during work.
 
-The scanner never writes raw source text into public reports. Each corpus entry records:
+## Why no default Hermes fork
 
-- path;
-- byte count;
-- SHA-256;
-- text/binary status;
-- approximate word count;
-- top-level source family;
-- deterministic behavior-signal counts.
+A fork would couple HCP to private implementation details and make every Hermes update a merge problem. Hermes now exposes enough plugin/context-engine surfaces for the important HCP2 behaviors, so core patches are unnecessary for the default architecture.
 
-For directory input, HCP computes a deterministic fingerprint over ordered `(path, file-sha256)` pairs. ZIP input is fingerprinted by the ZIP bytes, making the exact supplied archive reproducible.
+If a future capability genuinely requires a core patch, HCP's policy is to make it explicit, version/hash-gated, optional, and testable rather than silently modifying Hermes files.
 
-## Execution kernel
+## Evidence vs reasoning
 
-The kernel routes work by requested outcome:
-
-`EXPLAIN / EXPLORE / PLAN / DIAGNOSE / IMPLEMENT / REVIEW / VERIFY`
-
-Substantive implementation normally follows:
-
-`EXPLORE → PLAN/DIAGNOSE → IMPLEMENT → VERIFY → REVIEW → HANDOFF`
-
-The phases are not ceremony. Hermes should use the smallest applicable subset while preserving evidence-producing steps.
-
-## Skills
-
-HCP skills encode reusable procedures rather than project facts. Current skills cover:
-
-- orchestration;
-- exploration;
-- root-cause debugging;
-- implementation discipline;
-- verification;
-- independent review;
-- AFK autonomy;
-- context handoff;
-- parallel delegation;
-- git/change safety;
-- UI visual verification;
-- evidence-grounded research.
-
-## Bundles
-
-Bundles are Hermes-native YAML aliases that preload related skills. HCP ships:
-
-- `/hcp-coding`
-- `/hcp-debug`
-- `/hcp-afk`
-- `/hcp-ui`
-- `/hcp-research`
-
-## Safety model
-
-HCP is intentionally conservative around destructive and externally consequential actions. Autonomous coding does not imply authorization for credential rotation, purchases, publishing, destructive migrations, or unrelated cleanup.
-
-## Packaging
-
-Runtime skills and bundle files are included inside the Python package so `pip install .`, wheels, and editable installs behave consistently. Top-level `skills/` and `bundles/` mirror those assets for review and contribution. Tests enforce parity.
+`TRACE.jsonl` is intentionally an **observable event ledger**. It may record a tool call, a verification outcome, a provider error, a gate decision, or a state update. It does not attempt to expose or reconstruct hidden chain-of-thought.

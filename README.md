@@ -1,226 +1,254 @@
 # Hermes Control Pack
 
-**A research-driven orchestration, verification, and autonomy layer for [NousResearch/Hermes Agent](https://github.com/NousResearch/hermes-agent).**
+**A research-driven agent-harness augmentation layer for [NousResearch/Hermes Agent](https://github.com/NousResearch/hermes-agent).**
 
-Hermes Control Pack (HCP) converts a large local prompt/agent research corpus into a **Hermes-native runtime pack**: a concise project execution kernel, progressive-disclosure skills, skill bundles, reproducible corpus metadata, and safe installation tooling.
+Hermes Control Pack (HCP) studies captured system instructions and agent internals from major AI products, extracts transferable orchestration mechanisms, and reimplements them for Hermes as **system guidance, SOUL overlays, skills, persistent task state, verification gates, decision telemetry, and compression-safe continuity**.
 
-The goal is practical: make Hermes more disciplined during real repository work — inspect before editing, diagnose from evidence, finish integrations end-to-end, verify before claiming success, delegate independent work cleanly, protect user changes, and leave executable handoffs after long sessions.
+The goal is practical: make whichever model Hermes is using **more capable and coherent during real tasks** — understand before editing, preserve the user's objective across long sessions, recover from failed approaches, use tools deliberately, verify claims before finishing, and resume after compression or a new session without reconstructing the project from scratch.
 
-> HCP improves the **agent harness and operating procedure**. It does not modify model weights and does not claim to make one base model intrinsically equivalent to GPT, Claude, Gemini, Grok, or any other model.
+> HCP improves the **agent harness**, not the model weights. It does not claim to turn one base model into GPT, Claude, Gemini, Grok, or any other model. Its purpose is to transfer useful harness mechanisms into an open, model-agnostic runtime where they can be inspected and evaluated.
 
 ## Research corpus and credit
 
-HCP was bootstrapped against the public research corpus:
+HCP was bootstrapped against:
 
-- **Original corpus:** [`asgeirtj/system_prompts_leaks`](https://github.com/asgeirtj/system_prompts_leaks)
-- **Hermes target:** [`NousResearch/hermes-agent`](https://github.com/NousResearch/hermes-agent)
+- **Primary research corpus:** [`asgeirtj/system_prompts_leaks`](https://github.com/asgeirtj/system_prompts_leaks)
+- **Target runtime:** [`NousResearch/hermes-agent`](https://github.com/NousResearch/hermes-agent)
 
-The upstream corpus does the substantial work of collecting and organizing system-prompt and agent material across many products. HCP's original work is the **Hermes-specific compiler, indexing and provenance layer, execution kernel, skills/bundles, installer, tests, and evaluation spec**.
+The upstream corpus does the substantial work of collecting and organizing captured system-prompt and agent material. HCP's original work is the **cross-agent mechanism model, Hermes-specific runtime integration, persistent continuity model, compiler/indexer, SOUL profiles, skills/bundles, verification/telemetry layer, installer, tests, and evaluation tooling**.
 
-At project bootstrap time the upstream corpus declared CC0-1.0. HCP still does **not vendor the raw corpus by default**. You provide a local ZIP or checkout, and HCP emits metadata/aggregate signals rather than republishing source passages. See [CREDITS.md](CREDITS.md), [THIRD_PARTY.md](THIRD_PARTY.md), and [docs/RESEARCH_METHOD.md](docs/RESEARCH_METHOD.md).
+At project bootstrap time the upstream corpus declared CC0-1.0. HCP does **not vendor the raw corpus by default**. Runtime installation does not require the corpus. You only need a local ZIP/checkout when you want to reproduce the research analysis or rebuild from a particular corpus snapshot. See [CREDITS.md](CREDITS.md), [THIRD_PARTY.md](THIRD_PARTY.md), and [docs/RESEARCH_METHOD.md](docs/RESEARCH_METHOD.md).
 
-## What HCP installs
-
-```text
-project/.hermes.md
-~/.hermes/skills/
-  control-orchestrator/
-  explore-first/
-  root-cause-debugging/
-  implementation-discipline/
-  verification-gate/
-  independent-review/
-  afk-autonomy/
-  context-handoff/
-  parallel-delegation/
-  git-change-safety/
-  ui-visual-verification/
-  research-evidence/
-
-~/.hermes/skill-bundles/
-  hcp-coding.yaml
-  hcp-debug.yaml
-  hcp-afk.yaml
-  hcp-ui.yaml
-  hcp-research.yaml
-```
-
-The always-loaded `.hermes.md` remains concise. Specialist procedures are loaded only when relevant, matching Hermes' progressive-disclosure skill architecture.
-
-## Operating model
-
-HCP first distinguishes what the user actually asked for:
-
-`EXPLAIN / EXPLORE / PLAN / DIAGNOSE / IMPLEMENT / REVIEW / VERIFY`
-
-Substantive coding work normally follows the smallest useful subset of:
+## HCP 2.0 architecture
 
 ```text
-EXPLORE → PLAN / DIAGNOSE → IMPLEMENT → VERIFY → REVIEW → HANDOFF
+                         base model
+          GPT / Claude / Gemini / open-weight / ...
+                              │
+                              ▼
+                     Hermes Agent core
+                              │
+                   documented plugin hooks
+                              │
+             ┌────────────────┴────────────────┐
+             │      HCP runtime controller      │
+             │                                  │
+             │ system kernel + task routing     │
+             │ persistent project/task state    │
+             │ decision + evidence ledgers      │
+             │ completion verification gate     │
+             │ observable decision telemetry    │
+             │ compression continuity grounding │
+             └────────────────┬─────────────────┘
+                              │
+               SOUL + skills + project context
 ```
 
-The important invariant is not the arrows — it is that **editing is not proof**, and **a completion claim needs evidence**.
+HCP deliberately prefers Hermes' documented plugin and context-engine APIs over patching Hermes core. This keeps the integration inspectable and upgradeable.
 
 ## Quick start
 
 Requirements:
 
 - Python 3.11+
-- Hermes Agent installed for runtime use
-- a local ZIP/checkout of the research corpus you want to analyze
+- Hermes Agent installed
 
 ### Easiest option: let Hermes set itself up
 
-If Hermes Agent is already running, paste this directly into Hermes:
+If Hermes is already running, paste this into Hermes:
 
 ```text
 Set up Hermes Control Pack for this Hermes installation using:
 https://github.com/n4thyan/hermes-control-pack
 
-Read the repository README and relevant installation/compatibility docs first, then install and configure HCP end to end yourself. Inspect my current Hermes installation before changing anything. Preserve and back up any existing SOUL.md, .hermes.md, skills, bundles, plugins, config, and user customizations before replacing or merging them. Prefer HCP's supported plugin/integration path over patching Hermes core. Install the recommended runtime assets and default balanced setup, run HCP's doctor/validation checks, verify the HCP skills/bundles/integration actually load, and diagnose any failures instead of stopping at the first error. Do not delete unrelated files or user data. At the end, briefly report what you installed, what you backed up, what verification passed, and any optional features that remain unconfigured.
+Read the repository README and relevant installation/compatibility docs first, then install and configure HCP end to end yourself. Inspect my current Hermes installation before changing anything. Preserve and back up any existing SOUL.md, .hermes.md, skills, bundles, plugins, config, and user customizations before replacing or merging them. Prefer HCP's supported plugin/integration path over patching Hermes core. Use the recommended `hcp setup` flow where available, run HCP's doctor/validation checks afterward, verify the HCP plugin/skills/bundles and continuity integration actually load, and diagnose any failures instead of stopping at the first error. Do not delete unrelated files or user data. At the end, briefly report what you installed, what you backed up, what verification passed, and any optional features that remain unconfigured.
 ```
 
-A longer version with extra safeguards is in [docs/SELF_SETUP_PROMPT.md](docs/SELF_SETUP_PROMPT.md).
+A longer safeguarded version is in [docs/SELF_SETUP_PROMPT.md](docs/SELF_SETUP_PROMPT.md).
 
-### Manual install
+### One-command setup
 
 ```bash
 git clone https://github.com/n4thyan/hermes-control-pack.git
 cd hermes-control-pack
 python -m pip install .
+hcp setup --project /path/to/your-project
+hcp doctor --project /path/to/your-project
 ```
 
-### Build against the corpus
+`hcp setup` uses the runtime assets packaged with HCP. By default it:
+
+- installs the `hcp-runtime` Hermes plugin and asks Hermes to enable it;
+- installs the HCP skills and skill bundles;
+- merges the **balanced** HCP identity block into `SOUL.md` without deleting existing user-authored personality text;
+- initializes project-local structured continuity under `.hcp/state/`;
+- installs and selects `hcp-continuity`, a thin subclass of Hermes' built-in `ContextCompressor` that supplies structured HCP state as compaction grounding;
+- leaves an existing project `.hermes.md` alone unless `--project-context` is explicitly requested.
+
+Keep Hermes' normal compressor instead with:
 
 ```bash
-hcp build /path/to/system_prompts_leaks-main.zip --out build/hcp
+hcp setup --project /path/to/project --no-context-engine
 ```
 
-HCP scans **every file**, fingerprints the source, writes a per-file metadata index, computes cross-source behavior coverage, and packages the Hermes runtime assets.
-
-### Install into your project
+The context-engine choice is reversible:
 
 ```bash
-hcp install --build build/hcp --project /path/to/your-project
+hermes config set context.engine compressor
 ```
 
-Existing differing HCP-managed files are protected. To replace them, HCP requires `--force` and creates timestamped backups first.
+## Persistent continuity
+
+HCP keeps the model's active working set small without treating compression as memory deletion. Four durable project-local objects survive context compaction, process restarts, and new sessions:
+
+```text
+PROJECT_STATE.json    architecture, constraints, facts, do-not-regress rules
+TASK_STATE.json       objective, phase, acceptance criteria, changed paths, next steps
+DECISION_LOG.jsonl    material decisions + concise externally defensible rationale
+EVIDENCE_LEDGER.jsonl verification observations and results
+```
+
+An additional `TRACE.jsonl` records **observable harness events** such as tool calls, verification gates, API outcomes, and state transitions. It is deliberately not a chain-of-thought log.
+
+HCP injects a bounded state summary into each turn. The optional continuity engine also provides the same structured state to Hermes' own compressor when compaction occurs. Full conversation history remains Hermes' searchable archive; HCP state is the compact task-level continuity layer. See [docs/PERSISTENCE.md](docs/PERSISTENCE.md).
+
+## Runtime completion gates
+
+Editing code is not proof that it works. HCP observes tool activity and uses Hermes' bounded `pre_verify` hook to continue a coding turn when important evidence is missing.
+
+Examples include:
+
+- verification after the most recent observed edit;
+- a durable task objective so the job can survive a session boundary;
+- rendered-state evidence for UI-affecting changes;
+- final diff/status review for larger multi-file changes.
+
+The gate is bounded by Hermes, so HCP cannot trap the model in an infinite verification loop. See [docs/RUNTIME_PLUGIN.md](docs/RUNTIME_PLUGIN.md).
+
+## SOUL profiles
+
+HCP ships four identity overlays:
+
+- `balanced` — recommended default; evidence-led, direct, coherent, persistent;
+- `coder` — software-engineering and debugging emphasis;
+- `autonomous` — longer bounded/AFK execution with recovery discipline;
+- `research` — source/provenance and fact-vs-hypothesis discipline.
+
+Switch the HCP-managed block without deleting your own SOUL content:
 
 ```bash
-hcp install --build build/hcp --project /path/to/your-project --force
+hcp install --project . --soul coder --no-context --no-skills --no-bundles --no-plugin
 ```
 
-### Validate
+## Hermes skills and bundles
 
-```bash
-hcp doctor --build build/hcp --project /path/to/your-project
-```
+HCP includes 12 progressive-disclosure skills covering orchestration, exploration, root-cause debugging, implementation discipline, verification, review, AFK autonomy, context handoff, delegation, Git safety, UI verification, and evidence-grounded research.
 
-See [docs/USAGE.md](docs/USAGE.md) for selective installs, updates, and Windows examples.
-
-## Hermes bundles
-
-After installation you can invoke task profiles directly inside Hermes:
+Common bundles:
 
 ```text
 /hcp-coding implement this feature end to end
 /hcp-debug find and fix the root cause of this regression
-/hcp-ui match this screen to the reference and verify the interactions
+/hcp-ui match this screen to the reference and verify interactions
 /hcp-afk finish the remaining in-scope work while I'm away
-/hcp-research investigate the current API behavior using primary sources
+/hcp-research investigate this using current primary sources
 ```
 
-Each bundle is a small Hermes-native YAML alias that loads the relevant HCP skills together.
+## Research/compiler mode
 
-## Corpus analysis
-
-HCP can be used without installing anything into Hermes:
+Runtime users do **not** need the prompt corpus. Researchers can reproduce HCP's source analysis against any ZIP or directory:
 
 ```bash
-hcp scan /path/to/corpus.zip --out corpus-index.json
-hcp analyze /path/to/corpus.zip --out RESEARCH_SIGNALS.md
+hcp scan /path/to/system_prompts_leaks-main.zip --out corpus-index.json
+hcp analyze /path/to/system_prompts_leaks-main.zip --out RESEARCH_SIGNALS.md
+hcp mechanisms /path/to/system_prompts_leaks-main.zip --out MECHANISM_MATRIX.md
+hcp build /path/to/system_prompts_leaks-main.zip --out build/hcp
 ```
 
-The index records each entry's path, bytes, SHA-256, text/binary status, approximate word count, source family, and aggregate behavior signals. The signal report measures how broadly categories such as debugging, verification, delegation, context management, visual checking, research, git safety, and autonomy appear across the supplied source families.
+HCP scans every file, hashes the source, classifies source families/artifact types, measures behavior signals, and builds a **mechanism matrix** mapping observed cross-agent patterns to HCP implementation targets. These are coverage/provenance signals, not vendor rankings.
 
-Those are **coverage signals, not vendor scores or truth rankings**.
+The supplied bootstrap corpus snapshot contained 493 files, 461 decoded text files, and roughly 2.165 million words. Its source fingerprint is recorded in [`sources/bootstrap-source-lock.json`](sources/bootstrap-source-lock.json).
 
-## Why not concatenate the whole leak into one prompt?
+## Why not concatenate every leaked prompt into Hermes?
 
-A giant prompt is the wrong runtime representation:
+Because that would usually make the agent worse:
 
-- product-specific instructions conflict with each other;
-- proprietary tool schemas are irrelevant to Hermes;
-- millions of tokens crowd out the actual repository and task;
-- stale UI/product rules can become actively harmful;
-- Hermes already has a better mechanism: concise context + on-demand skills.
+- vendor/product instructions conflict;
+- proprietary tool schemas do not match Hermes;
+- millions of tokens would crowd out the actual task and repository;
+- stale product/UI instructions would become active noise;
+- prompt caching would suffer;
+- the same mechanism is often expressed repeatedly across products.
 
-HCP therefore uses the complete supplied corpus as **research input**, then compiles transferable mechanisms into Hermes-native layers.
+HCP instead treats the corpus as an **agent-architecture dataset**. It extracts transferable mechanisms and assigns each one to the appropriate implementation layer:
 
-## Reproducibility
-
-Every build includes:
-
-- `corpus-index.json` — per-file hashes and metadata;
-- `CORPUS_COVERAGE.md` — source-family + signal counts;
-- `RESEARCH_SIGNALS.md` — cross-source behavior coverage;
-- `hcp-manifest.json` — HCP version, corpus fingerprint, and SHA-256 of every emitted runtime artifact;
-- `.hermes.md`, `skills/`, and `bundles/` — the actual runtime pack.
-
-ZIP inputs are fingerprinted from the archive bytes. Directory inputs use a deterministic digest of ordered `(path, file SHA-256)` pairs.
+```text
+PROMPT / SYSTEM KERNEL   persistent general behavior
+SOUL                     identity and communication posture
+SKILL                    task-specific procedure
+RUNTIME                  mechanically enforced or observed behavior
+STATE                    cross-session continuity
+PROVIDER ADAPTER         model/provider-specific accommodation
+```
 
 ## Evaluation
 
-The repository includes a model-agnostic [benchmark specification](benchmarks/README.md). It intentionally ships **no fabricated performance numbers**. To compare stock Hermes vs HCP fairly, keep the model/provider/tool configuration fixed and evaluate observable behaviors such as:
+The project is intended to make harness improvements measurable. Keep model, provider, tools, repository, and task fixed, then compare stock Hermes vs Hermes + HCP on observable outcomes such as:
 
-- edits before inspection;
+- premature edits;
 - unnecessary clarification requests;
-- reproduction/root-cause quality;
-- verification-backed completion claims;
-- unrelated change rate;
-- rendered-state UI checks;
-- final diff review;
-- long-session handoff quality.
+- root-cause quality;
+- recovery after failed approaches;
+- completion claims without evidence;
+- regressions/unrelated changes;
+- rendered-state UI validation;
+- token/context pressure;
+- session-resume quality;
+- repeated work after compaction;
+- final diff quality.
+
+See [benchmarks/README.md](benchmarks/README.md). The repository intentionally ships no fabricated benchmark wins.
 
 ## Repository layout
 
 ```text
-src/hermes_control_pack/   compiler, analyzer, installer, CLI, packaged runtime assets
-skills/                    reviewable HCP skill sources
-bundles/                   reviewable Hermes skill bundles
-docs/                      architecture, usage, research method, provenance
-benchmarks/                 evaluation specification
-examples/                   project-context examples
+src/hermes_control_pack/   CLI, compiler, analysis, installer, state model
+plugins/hcp-runtime/       Hermes runtime plugin
+plugins/context_engine/    optional compression-continuity engine
+souls/                     managed SOUL overlays
+skills/                    task procedures
+bundles/                   Hermes skill bundles
+docs/                      architecture, runtime, persistence, usage, provenance
+benchmarks/                model-agnostic evaluation spec
 sources/                    source policy + bootstrap fingerprint
-reports/                    aggregate bootstrap reports (no raw prompt text)
-tests/                      corpus/compiler/installer/analyzer tests
+reports/                    aggregate bootstrap reports, no raw prompt corpus
 ```
 
-## Development
+## Development and verification
 
 ```bash
 python -m pip install -e .
 python -m unittest discover -s tests -v
-python -m compileall -q src/hermes_control_pack
+python -m compileall -q src/hermes_control_pack plugins
+python -m pip wheel . -w dist
 hcp --version
+hcp setup --help
 ```
 
-CI runs on Windows and Linux across Python 3.11, 3.12, and 3.13 and separately smoke-tests a built wheel.
-
-When changing a top-level skill or bundle, mirror it into `src/hermes_control_pack/runtime/`; the test suite rejects drift between the reviewable and packaged copies.
+CI runs on Windows and Linux across Python 3.11–3.13 and separately installs a built wheel and smoke-tests runtime setup.
 
 ## Design principles
 
-1. Use the whole supplied corpus as research input, not one magic prompt.
-2. Transfer mechanisms, not vendor identity or proprietary tool instructions.
-3. Keep always-loaded context compact.
-4. Load specialist procedures on demand.
-5. Diagnose bugs from evidence.
-6. Require appropriate evidence before completion claims.
-7. Preserve user work and keep changes reviewable.
-8. Use parallelism only where work is actually independent.
-9. Treat rendered UI as evidence for visual work.
-10. Keep autonomous work bounded, recoverable, and aligned to the user's scope.
+1. Optimize for real task capability and coherence, not sophisticated-sounding prose.
+2. Use the whole supplied corpus as research input, not one magic prompt.
+3. Transfer mechanisms, not vendor identity or proprietary tool instructions.
+4. Preserve the user's objective across context and session boundaries.
+5. Separate facts, hypotheses, decisions, and verification evidence.
+6. Diagnose from evidence before patching.
+7. Require appropriate evidence before completion claims.
+8. Keep always-loaded context bounded; retrieve deeper history when needed.
+9. Preserve user customizations and keep changes reversible.
+10. Prefer documented Hermes extension surfaces over fragile core patches.
 
 ## Non-affiliation
 

@@ -1,5 +1,6 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
+  "hcp_version": "2.0.0",
   "source_sha256": "8529f949a6ac96324e473ed4cafc7eea99a6dba54bc52ee82084a0f1150a56f1",
   "entry_count": 493,
   "text_entry_count": 461,
@@ -27,6 +28,16 @@
     "Pi": 1,
     "assets": 1
   },
+  "artifact_counts": {
+    "prompt_or_notes": 205,
+    "skill": 166,
+    "agent_prompt": 62,
+    "asset": 32,
+    "source": 13,
+    "documentation": 7,
+    "system_prompt": 5,
+    "command": 3
+  },
   "category_hits": {
     "exploration": 25891,
     "tools": 20603,
@@ -43,6 +54,7 @@
     "review": 2988,
     "autonomy": 1729
   },
+  "mechanism_count": 19,
   "upstream": "https://github.com/asgeirtj/system_prompts_leaks",
   "generated_on": "2026-09-16"
 }
