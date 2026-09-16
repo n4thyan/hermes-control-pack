@@ -4,28 +4,45 @@ description: Preserve user work and keep repository changes reviewable, attribut
 version: 1.0.0
 metadata:
   hermes:
-    tags: [git, coding, safety, review]
+    tags: [git, safety, review, workflow]
     category: development
 ---
 
-# Git Change Safety
+Use when Hermes is making changes in a Git repository and the changes must be safe, reviewable, and recoverable.
 
-## When to Use
-Use before and after substantive repository modifications, especially in dirty working trees or long autonomous sessions.
+# Trigger conditions
 
-## Procedure
-1. Inspect status, current branch, and relevant diff before editing.
-2. Treat unrelated changes as user-owned; do not revert or rewrite them for convenience.
-3. Avoid generated files, secrets, caches, and large artifacts unless intentionally tracked by the project.
-4. Keep the change set coherent enough to review and revert.
-5. Inspect final status/diff for accidental scope expansion or missing files.
-6. Only claim commit/push/PR success when the corresponding tool command confirms it.
+- The current project is a Git checkout.
+- Hermes is about to create, modify, or delete files.
+- The user explicitly asks for a commit, branch, or PR workflow.
+- There is a risk of overwriting user changes or committing secrets.
 
-## Pitfalls
-- Resetting a dirty tree.
-- Committing credentials or local build output.
-- Staging unrelated user edits.
-- Saying "pushed" because a local commit exists.
+# Procedure
 
-## Verification
-The final diff contains only intended work, user-owned changes remain intact, and any publication action is confirmed by the repository service.
+1. **Inspect state before and after changes**
+   - Run `git status` before substantive changes to understand the working tree.
+   - Run `git diff`/`git status` after substantive changes to verify the delta is intended.
+
+2. **Protect user changes**
+   - Do not overwrite unrelated working-tree changes.
+   - Treat user changes as intentional unless evidence proves otherwise.
+
+3. **Avoid committing generated artifacts, secrets, and local config**
+   - Do not commit `__pycache__`, `.pyc`, build artifacts, wheels, egg-info, or temporary files.
+   - Do not commit secrets, API keys, tokens, or credentials.
+
+4. **Use commits, branches, and worktrees appropriately**
+   - Follow the project's established workflow.
+   - Keep commits reviewable and attributable.
+   - Prefer reversible changes over sweeping rewrites.
+
+5. **Never claim a commit/push/PR occurred unless the tool result confirms it**
+   - Verify the actual Git operation succeeded.
+   - Report the commit SHA or PR URL only after confirmation.
+
+# Pitfalls
+
+- Do not overwrite unrelated user changes.
+- Do not commit secrets or generated artifacts.
+- Do not claim a Git operation occurred without tool confirmation.
+- Do not change the user's `.gitignore` without need (HCP uses private git exclude instead).

@@ -8,24 +8,39 @@ metadata:
     category: development
 ---
 
-# UI Visual Verification
+Use when Hermes has made UI-affecting changes and the rendered output is the actual product.
 
-## When to Use
-Use for frontend layout, styling, graphics, responsive behavior, visual parity, or interaction changes.
+# Trigger conditions
 
-## Procedure
-1. Identify the target viewport/platform and any supplied reference image or original implementation.
-2. Inspect existing component/layout/asset conventions before editing.
-3. Build/run the relevant frontend and exercise the target screen in a browser when tools permit.
-4. Inspect the rendered result, not just DOM/source code.
-5. Check sizing, alignment, clipping, stacking, fonts/assets, loading/error states, and relevant interactions.
-6. Compare against references at the same state/viewport when parity matters.
-7. Re-test after final CSS/layout changes because small edits can introduce regressions elsewhere.
+- The change touches `.tsx`, `.jsx`, `.css`, `.scss`, `.sass`, `.less`, `.html`, `.vue`, `.svelte`, or similar.
+- The user explicitly asks for visual verification.
+- Appearance, layout, sizing, clipping, responsive behavior, loading/error state, or interaction correctness matters.
+- Browser/vision tooling is available.
 
-## Pitfalls
-- Claiming parity from source inspection alone.
-- Testing only the happy-state screenshot while ignoring interaction/state changes.
-- Replacing provided assets with approximations without need.
+# Procedure
 
-## Verification
-The requested screen is visibly correct at the target state/viewport and its relevant interactions still work.
+1. **Confirm compilation first**
+   - Ensure the project builds. Compilation alone is not visual verification, but a broken build makes rendering moot.
+
+2. **Render and inspect**
+   - Open the actual page/screen using browser/vision tools.
+   - Compare layout, sizing, clipping, responsive behavior, loading/error states, and interactions relevant to the request.
+
+3. **Use references when available**
+   - Prefer provided reference images/assets over approximating from memory.
+   - Compare against the reference, not against an imagined ideal.
+
+4. **Verify at the target viewport/platform**
+   - If the request is platform-specific, verify at the target viewport.
+   - Check responsive behavior across breakpoints when relevant.
+
+5. **Record visual evidence**
+   - Use `hcp_evidence_record` with kind "visual" to record what was actually observed.
+   - Screenshots or vision analysis serve as the evidence; do not claim "it looks right" without inspection.
+
+# Pitfalls
+
+- Do not treat compilation as visual verification.
+- Do not approximate UI from memory when references or rendered output are available.
+- Do not claim visual correctness without actually inspecting the rendered page.
+- Do not ignore loading/error states.

@@ -4,28 +4,49 @@ description: Split independent work into bounded subagents without duplicating e
 version: 1.0.0
 metadata:
   hermes:
-    tags: [coding, orchestration, delegation, parallel]
+    tags: [delegation, parallelism, subagents]
     category: development
 ---
 
-# Parallel Delegation
+Use when a task has genuinely independent workstreams that can be delegated, and the parallelism would save real time.
 
-## When to Use
-Use when two or more independent discovery, research, review, or implementation workstreams can proceed without contending for the same files/state.
+# Trigger conditions
 
-## Procedure
-1. Identify truly independent workstreams and the dependency graph between them.
-2. Give each delegate a bounded question, relevant paths/context, a concrete deliverable, and a stop condition.
-3. Prefer parallel reads/research/review; parallel writes require non-overlapping ownership.
-4. Keep one parent responsible for integration decisions and acceptance criteria.
-5. Reconcile delegate findings against repository/runtime evidence instead of accepting them blindly.
-6. Re-run integrated verification after merging conclusions or edits.
+- The task contains independent sub-problems (e.g., parallel research, independent implementations, separate review passes).
+- The sub-problems do not edit the same files or surfaces.
+- The user explicitly or implicitly allows delegation (e.g., "check these three things", "investigate in parallel").
 
-## Pitfalls
-- Sending multiple agents to rediscover the same facts.
-- Allowing concurrent edits to the same surface without coordination.
-- Delegating the final decision while losing user acceptance criteria.
-- Treating a delegate's confidence as verification.
+Do NOT use when the workstreams are tightly coupled, share files, or require sequential reasoning.
 
-## Verification
-Each delegated result has a clear provenance and the integrated result passes the parent task's actual verification gate.
+# Procedure
+
+1. **Confirm independence**
+   - Each delegated unit must have a bounded question, a concrete deliverable, relevant paths, and a stop condition.
+   - Ensure no two units edit the same files or surfaces without explicit merge coordination.
+
+2. **Write a bounded contract**
+   For each unit, specify:
+   - the question or objective;
+   - the expected deliverable (findings, diff, verification result);
+   - the relevant paths or scope;
+   - a stop condition (when to report back rather than continuing indefinitely).
+
+3. **Avoid duplication**
+   - Search for existing implementation before delegating creation of new helpers.
+   - Share established facts across units; do not repeatedly rediscover the same thing.
+
+4. **Verify delegated conclusions before incorporating**
+   - Do not treat a subagent's "success" message as verified proof.
+   - Cross-check material claims against repository/runtime evidence.
+
+5. **Reconcile and integrate**
+   - Merge results into the main task.
+   - Update TASK_STATE with combined changed paths and next steps.
+
+# Pitfalls
+
+- Do not delegate tightly coupled work.
+- Do not let multiple agents edit the same files simultaneously.
+- Do not treat delegated conclusions as verified without evidence.
+- Do not invent fake parallelism for sequential work.
+- Do not give agents unbounded or ambiguous objectives.
