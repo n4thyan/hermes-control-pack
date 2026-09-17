@@ -3,19 +3,18 @@
 STATE_READ = {
     "name": "hcp_state_read",
     "description": (
-        "Read Hermes Control Pack persistent project/task continuity. Use at the start of a resumed task, "
-        "after context compression when details are uncertain, or before making a decision that may already "
-        "have been recorded. Returns structured state, recent decisions, and verification evidence."
+        "Read Hermes Control Pack continuity. Project/task state is project-scoped; global state and pending continuity "
+        "items live under the Hermes home and are available independently of the current working directory."
     ),
     "parameters": {
         "type": "object",
         "properties": {
             "scope": {
                 "type": "string",
-                "enum": ["summary", "project", "task", "decisions", "evidence", "trace"],
+                "enum": ["summary", "project", "task", "decisions", "evidence", "trace", "global", "instructions"],
                 "description": "Which durable HCP view to return.",
             },
-            "limit": {"type": "integer", "minimum": 1, "maximum": 200, "description": "Tail length for log scopes."},
+            "limit": {"type": "integer", "minimum": 1, "maximum": 200, "description": "Tail length for log/list scopes."},
         },
     },
 }
@@ -23,16 +22,22 @@ STATE_READ = {
 STATE_UPDATE = {
     "name": "hcp_state_update",
     "description": (
-        "Update persistent HCP PROJECT_STATE or TASK_STATE. Use when goals, acceptance criteria, architecture facts, "
-        "constraints, changed paths, blockers, current phase, completed work, or next steps materially change. "
-        "Pass only concise durable state, not transcript prose or hidden reasoning."
+        "Update persistent HCP state. Use project/task for project continuity, global for cwd-independent durable context, "
+        "and instruction for explicit future or cross-session continuity items."
     ),
     "parameters": {
         "type": "object",
         "properties": {
-            "scope": {"type": "string", "enum": ["project", "task"]},
-            "patch": {"type": "object", "description": "JSON object merged into the selected state object."},
-            "replace": {"type": "boolean", "description": "Replace the object instead of deep-merging it. Usually false."},
+            "scope": {"type": "string", "enum": ["project", "task", "global", "instruction"]},
+            "patch": {
+                "type": "object",
+                "description": (
+                    "For project/task/global: object merged into state. For instruction creation: include action, action_type, "
+                    "trigger_type, trigger_patterns, scope, consume_after_success, and optional timing/priority. For an existing "
+                    "instruction include instruction_id and the fields to change."
+                ),
+            },
+            "replace": {"type": "boolean", "description": "Replace project/task object instead of deep-merging it."},
         },
         "required": ["scope", "patch"],
     },
