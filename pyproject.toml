@@ -44,4 +44,5 @@ hermes_control_pack = [
   "runtime/plugins/hcp-runtime/*.yaml",
   "runtime/plugins/context_engine/hcp-continuity/*.py",
   "runtime/plugins/context_engine/hcp-continuity/*.yaml",
+  "*.py",
 ]
