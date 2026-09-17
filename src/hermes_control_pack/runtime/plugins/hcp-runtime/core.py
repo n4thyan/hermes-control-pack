@@ -419,9 +419,10 @@ def register(ctx) -> None:
     ):
         ctx.register_tool(name=name, toolset="hcp", schema=schema, handler=_wrap_tool(handler))
 
-    ctx.register_system_prompt_section(
-        "hcp.runtime-kernel", _system_section, position="after_memory", max_chars=4000
-    )
+    if hasattr(ctx, "register_system_prompt_section"):
+        ctx.register_system_prompt_section(
+            "hcp.runtime-kernel", _system_section, position="after_memory", max_chars=4000
+        )
     ctx.register_hook("pre_llm_call", _pre_llm_call)
     ctx.register_hook("post_tool_call", _post_tool_call)
     ctx.register_hook("pre_verify", _pre_verify)
