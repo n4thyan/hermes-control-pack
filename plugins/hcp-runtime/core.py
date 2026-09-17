@@ -432,3 +432,45 @@ def register(ctx) -> None:
     ctx.register_hook("on_session_end", _on_session_end)
     ctx.register_hook("on_session_finalize", _on_session_finalize)
     ctx.register_command("hcp-status", _status_command, description="Show HCP persistent task/verification state")
+
+    # Print the truthful startup banner — register() is called when Hermes
+    # discovers and enables the plugin, which definitely happens on startup.
+    # Use multiple strategies: file (always works), WriteConsoleW (bypasses TUI), stderr (fallback).
+    try:
+        import sys
+        from .status_line import build_startup_line
+        from pathlib import Path
+        import os
+        env = os.environ.get("HERMES_HOME")
+        home = Path(env).expanduser().resolve() if env else (Path.home() / ".hermes").resolve()
+        banner = build_startup_line(home)
+        
+        # Strategy 1: Write to HCP state file (reliable proof)
+        try:
+            state_dir = home / "hcp"
+            state_dir.mkdir(parents=True, exist_ok=True)
+            (state_dir / ".startup-banner.txt").write_text(banner + "\n", encoding="utf-8")
+        except Exception:
+            pass
+        
+        # Strategy 2: Windows WriteConsoleW (bypasses TUI capture)
+        try:
+            import ctypes
+            import ctypes.wintypes
+            kernel32 = ctypes.windll.kernel32
+            STD_ERROR_HANDLE = -12
+            handle = kernel32.GetStdHandle(STD_ERROR_HANDLE)
+            if handle and handle != -1:
+                written = ctypes.wintypes.DWORD()
+                kernel32.WriteConsoleW(handle, banner + "\r\n", len(banner) + 2, ctypes.byref(written), None)
+        except Exception:
+            pass
+        
+        # Strategy 3: stderr fallback
+        try:
+            sys.stderr.write(banner + "\n")
+            sys.stderr.flush()
+        except Exception:
+            pass
+    except Exception:
+        pass
