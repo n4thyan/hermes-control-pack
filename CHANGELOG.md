@@ -2,6 +2,29 @@
 
 All notable HCP changes are documented here.
 
+## 2.1.0 — 2026-09-17
+
+Ambient, cwd-independent continuity release.
+
+### Global continuity
+- Added `<HERMES_HOME>/hcp/global/` state so HCP continuity no longer depends on the directory Hermes was launched from.
+- Added structured `PENDING_INSTRUCTIONS.json` with trigger, timing, scope, lifecycle, priority, and one-shot consumption semantics.
+- Added global/instructions views to `hcp_state_read` and global/instruction writes to `hcp_state_update`.
+- Added global continuity injection on every user turn before the model answers.
+
+### Trigger activation
+- Added conservative automatic capture for explicit future-response instructions such as “next session when I say X, reply with Y”.
+- Added trigger matching for exact, contains, regex, next-session, and always-active instructions.
+- Added active continuity injection so matched intent is presented as current work rather than passive transcript memory.
+- Added `respond_exact` enforcement through Hermes' documented `transform_llm_output` hook, with successful one-shot instructions marked completed.
+- Added a fallback persistence directive when future intent is detected but cannot be safely auto-structured.
+
+### Compatibility and quality
+- Preserved the HCP 2.0 project-state, evidence-gate, telemetry, and verification kernel behind the 2.1 ambient layer.
+- Kept reviewable top-level runtime files byte-for-byte synchronized with packaged runtime assets.
+- Added tests for the original morning-instruction failure mode, cross-session trigger execution, one-shot consumption, tool readback, and launch-directory independence.
+- Bumped package and runtime manifests to 2.1.0.
+
 ## 2.0.0 — 2026-09-16
 
 Harness reconstruction and persistent continuity release.
