@@ -1,10 +1,19 @@
 """Hermes tool schemas for structured HCP continuity."""
 
+_PROJECT_ROOT = {
+    "type": "string",
+    "description": (
+        "Optional project/workspace root. Use this when Hermes was launched outside the project directory. "
+        "If omitted, HCP uses the current session's mapped project root."
+    ),
+}
+
 STATE_READ = {
     "name": "hcp_state_read",
     "description": (
         "Read Hermes Control Pack continuity. Project/task state is project-scoped; global state and pending continuity "
-        "items live under the Hermes home and are available independently of the current working directory."
+        "items live under the Hermes home and are available independently of the current working directory. Use project_root "
+        "to read a specific project even when Hermes was launched elsewhere."
     ),
     "parameters": {
         "type": "object",
@@ -15,6 +24,7 @@ STATE_READ = {
                 "description": "Which durable HCP view to return.",
             },
             "limit": {"type": "integer", "minimum": 1, "maximum": 200, "description": "Tail length for log/list scopes."},
+            "project_root": _PROJECT_ROOT,
         },
     },
 }
@@ -23,7 +33,8 @@ STATE_UPDATE = {
     "name": "hcp_state_update",
     "description": (
         "Update persistent HCP state. Use project/task for project continuity, global for cwd-independent durable context, "
-        "and instruction for explicit future or cross-session continuity items."
+        "and instruction for explicit future or cross-session continuity items. Use project_root when operating on a project "
+        "that is not the directory Hermes was launched from."
     ),
     "parameters": {
         "type": "object",
@@ -38,6 +49,7 @@ STATE_UPDATE = {
                 ),
             },
             "replace": {"type": "boolean", "description": "Replace project/task object instead of deep-merging it."},
+            "project_root": _PROJECT_ROOT,
         },
         "required": ["scope", "patch"],
     },
@@ -57,6 +69,7 @@ DECISION_RECORD = {
             "alternatives": {"type": "array", "items": {"type": "string"}},
             "evidence_refs": {"type": "array", "items": {"type": "string"}},
             "status": {"type": "string", "enum": ["accepted", "superseded", "rejected", "tentative"]},
+            "project_root": _PROJECT_ROOT,
         },
         "required": ["decision"],
     },
@@ -79,6 +92,7 @@ EVIDENCE_RECORD = {
             "details": {"type": "string"},
             "command": {"type": "string"},
             "changed_paths": {"type": "array", "items": {"type": "string"}},
+            "project_root": _PROJECT_ROOT,
         },
         "required": ["subject", "result"],
     },
