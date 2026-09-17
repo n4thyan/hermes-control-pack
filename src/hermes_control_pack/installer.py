@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 import filecmp
 import json
+import os
 import shutil
 import subprocess
 import time
@@ -258,6 +259,115 @@ def _select_context_engine(messages: list[str], hermes_home: Path) -> None:
         )
 
 
+# ---------------------------------------------------------------------------
+# Hermes startup-notice compatibility patch
+# ---------------------------------------------------------------------------
+#
+# HCP 2.2 uses ctx.register_startup_notice(callback) to render its status
+# line in the interactive Hermes welcome UI. This requires three small,
+# stable additions to the Hermes source:
+#
+#   1. hermes_cli/plugins.py — PluginContext.register_startup_notice +
+#                              PluginManager.get_startup_notices +
+#                              _startup_notices storage
+#   2. hermes_cli/banner.py  — build_welcome_banner accepts and renders
+#                              startup_notices through the Rich console
+#   3. cli.py                — HermesCLI.show_banner discovers plugins
+#                              and fetches notices before rendering
+#
+# The helper below is a SINGLE-PURPOSE installer step. It is NOT a generic
+# patch framework. It anchors on stable sentinels that uniquely identify
+# the Hermes 0.20.x source shape. If the source shape no longer matches,
+# it fails safely rather than corrupting the installation.
+#
+# The sentinel for "already patched" is the method name
+# `register_startup_notice` in plugins.py — if present, no work is done.
+
+_HERMES_PATCH_BACKUP_DIRNAME = ".hcp-hermes-patches"
+
+
+def _hermes_install_root() -> Path | None:
+    """Locate the live Hermes installation root.
+
+    Uses the running Hermes Python's import path. The hermes_cli package
+    lives under <install_root>/hermes_cli/__init__.py, and cli.py sits at
+    <install_root>/cli.py.
+    """
+    try:
+        import hermes_cli
+        return Path(hermes_cli.__file__).resolve().parent.parent
+    except Exception:
+        return None
+
+
+def _hermes_already_patched(install_root: Path) -> bool:
+    """Return True if the startup-notice support is already present."""
+    plugins_py = install_root / "hermes_cli" / "plugins.py"
+    if not plugins_py.exists():
+        return False
+    try:
+        text = plugins_py.read_text(encoding="utf-8")
+        return "def register_startup_notice(" in text and "def get_startup_notices(" in text
+    except OSError:
+        return False
+
+
+def _backup_hermes_file(src_path: Path, hermes_home: Path, messages: list[str], label: str) -> Path:
+    """Copy a Hermes source file to a backup location outside plugin scan paths."""
+    backup_root = hermes_home / _HERMES_PATCH_BACKUP_DIRNAME
+    backup_root.mkdir(parents=True, exist_ok=True)
+    backup_name = src_path.name + f".hcp-backup-{_stamp()}"
+    backup = backup_root / backup_name
+    shutil.copy2(src_path, backup)
+    messages.append(f"Backed up {label}: {backup}")
+    return backup
+
+
+def _patch_with_anchor(original: str, anchor: str, insertion: str, context_before: str = "") -> str:
+    """Insert `insertion` immediately after the `anchor` line.
+
+    Verifies that `context_before` (if given) appears on the line just before
+    the anchor. Returns the original unchanged if the anchor is not found or
+    the context does not match.
+    """
+    lines = original.splitlines()
+    for i, line in enumerate(lines):
+        if line.rstrip() == anchor.rstrip():
+            # Verify context_before if specified
+            if context_before and i > 0:
+                if context_before.rstrip() not in lines[i - 1].rstrip():
+                    continue
+            # Insert after this line
+            result_lines = lines[:i + 1] + insertion.splitlines() + lines[i + 1:]
+            return "\n".join(result_lines) + ("\n" if original.endswith("\n") else "")
+    return original
+
+
+def _ensure_hermes_startup_notice_support(hermes_home: Path, messages: list[str]) -> bool:
+    """Verify the live Hermes installation supports HCP startup notices.
+
+    The startup-notice support (register_startup_notice / get_startup_notices
+    in plugins.py, startup_notices parameter in banner.py, and the
+    show_banner discovery path in cli.py) is a manual Hermes-side change.
+    This helper verifies it is present and warns if not.
+    """
+    install_root = _hermes_install_root()
+    if not install_root:
+        messages.append("Could not locate Hermes install root — skipping startup-notice check")
+        return False
+
+    if _hermes_already_patched(install_root):
+        messages.append(f"Hermes startup-notice support verified at {install_root}")
+        return True
+
+    messages.append(
+        f"WARNING: Hermes startup-notice support not detected at {install_root}. "
+        "HCP status line will not appear in the welcome UI. "
+        "Apply the Hermes startup-notice patches manually or reinstall HCP."
+    )
+    return False
+
+
 def install_pack(
     build_dir: Path | None,
     project_dir: Path,
@@ -272,6 +382,7 @@ def install_pack(
     install_context_engine: bool = False,
     select_context_engine: bool = False,
     initialize_state: bool = True,
+    install_hermes_patches: bool = True,
 ) -> list[str]:
     if build_dir is not None:
         build_dir = build_dir.resolve()
@@ -346,6 +457,10 @@ def install_pack(
             available = ", ".join(p.stem for p in sorted((assets / "souls").glob("*.md")))
             raise ValueError(f"Unknown SOUL profile {soul_profile!r}. Available: {available}")
         _merge_soul_profile(soul, hermes_home / "SOUL.md", hermes_home, messages, soul_profile)
+
+    # Verify Hermes startup-notice support is present (manual Hermes-side change).
+    if install_hermes_patches:
+        _ensure_hermes_startup_notice_support(hermes_home, messages)
 
     if initialize_state:
         state = ProjectStateStore(project_dir)
