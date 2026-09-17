@@ -19,10 +19,13 @@ Ambient, cwd-independent continuity release.
 - Added `respond_exact` enforcement through Hermes' documented `transform_llm_output` hook, with successful one-shot instructions marked completed.
 - Added a fallback persistence directive when future intent is detected but cannot be safely auto-structured.
 
+### Project-scoped routing
+- Fixed ambient `pre_llm_call` to resolve the current session's project root via the HCP 2.0 session→project mapping, so project-scoped pending instructions now match their project. Previously `project_root=""` was passed, so project-scoped instructions could never auto-activate.
+
 ### Compatibility and quality
 - Preserved the HCP 2.0 project-state, evidence-gate, telemetry, and verification kernel behind the 2.1 ambient layer.
 - Kept reviewable top-level runtime files byte-for-byte synchronized with packaged runtime assets.
-- Added tests for the original morning-instruction failure mode, cross-session trigger execution, one-shot consumption, tool readback, and launch-directory independence.
+- Added tests for the original morning-instruction failure mode, cross-session trigger execution, one-shot consumption, tool readback, launch-directory independence, project-scoped routing/isolation, malformed-state degradation, idempotent state ops, trigger semantics, and ambient behavior from an unrelated directory.
 - Bumped package and runtime manifests to 2.1.0.
 
 ## 2.0.0 — 2026-09-16

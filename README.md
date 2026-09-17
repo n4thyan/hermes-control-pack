@@ -97,7 +97,9 @@ Install HCP once and keep using Hermes as usual. The visible differences should 
 
 In other words: **same model, better operating discipline around the model.**
 
-## HCP 2.0 architecture
+## HCP 2.1 architecture
+
+HCP 2.1 keeps the proven HCP 2.0 project kernel and adds cwd-independent ambient continuity:
 
 ```text
                          base model
@@ -117,6 +119,11 @@ In other words: **same model, better operating discipline around the model.**
              │ completion verification gate     │
              │ observable decision telemetry    │
              │ compression continuity grounding │
+             │                                  │
+             │ + cwd-independent global state   │
+             │ + structured pending intents     │
+             │ + automatic future-instruction   │
+             │   capture                        │
              └────────────────┬─────────────────┘
                               │
                SOUL + skills + project context
