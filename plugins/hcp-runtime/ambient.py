@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from typing import Any
-import json
 import logging
 import threading
 
@@ -25,6 +24,28 @@ def _equivalent_pending(store: GlobalStateStore, payload: dict[str, Any]) -> dic
     return None
 
 
+def _explicit_supersession(user_message: str) -> bool:
+    """Return True when the current turn plainly asks not to follow prior intent.
+
+    New direct user intent outranks HCP persistence. This conservative guard keeps
+    an old trigger from forcing output while the user is cancelling or correcting it.
+    """
+    text = " ".join(str(user_message or "").casefold().split())
+    return any(phrase in text for phrase in (
+        "ignore that instruction",
+        "ignore the previous instruction",
+        "ignore my previous instruction",
+        "cancel that instruction",
+        "cancel the previous instruction",
+        "forget that instruction",
+        "don't do that",
+        "do not do that",
+        "don't follow that",
+        "do not follow that",
+        "instead of the previous instruction",
+    ))
+
+
 def _pre_llm_call(session_id: str, **kwargs):
     """Always inject cwd-independent continuity before the model sees the turn."""
     try:
@@ -36,7 +57,8 @@ def _pre_llm_call(session_id: str, **kwargs):
         # Detect a new explicit future-response instruction before matching existing
         # triggers, so mentioning the trigger while defining it cannot fire it now.
         captured = capture_explicit_future_response(user_message)
-        match_message = "" if captured else user_message
+        supersedes = _explicit_supersession(user_message)
+        match_message = "" if (captured or supersedes) else user_message
         context, active_ids = store.render_context(
             match_message,
             session_id=session_id,
@@ -59,6 +81,13 @@ def _pre_llm_call(session_id: str, **kwargs):
                     "\n[HCP FUTURE INSTRUCTION ALREADY PERSISTED]\n"
                     f"Equivalent pending instruction id={existing.get('id')} already exists."
                 )
+        elif supersedes:
+            capture_note = (
+                "\n[HCP CURRENT USER OVERRIDE]\n"
+                "The current turn explicitly cancels or supersedes prior intent. Do not activate a persisted trigger from "
+                "this message. If a stored instruction is being cancelled or replaced, update its structured HCP status "
+                "rather than leaving stale intent active."
+            )
         elif looks_cross_session_instruction(user_message):
             capture_note = (
                 "\n[HCP PERSISTENCE REQUIRED]\n"
@@ -75,6 +104,7 @@ def _pre_llm_call(session_id: str, **kwargs):
             "is_first_turn": bool(kwargs.get("is_first_turn", False)),
             "active_instruction_ids": active_ids,
             "auto_captured": bool(captured),
+            "current_user_override": supersedes,
         })
         return {"context": context + capture_note}
     except Exception as exc:
