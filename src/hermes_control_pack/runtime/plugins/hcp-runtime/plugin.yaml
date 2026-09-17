@@ -1,11 +1,11 @@
 name: hcp-runtime
-version: 2.0.0
+version: 2.1.0
 manifest_version: 2
 api_version: 1
 license: MIT
 homepage: https://github.com/n4thyan/hermes-control-pack
-description: Persistent task state, evidence gates, continuity injection, and decision telemetry for Hermes Control Pack.
-tags: [orchestration, continuity, verification, telemetry]
+description: Persistent project state plus cwd-independent ambient continuity, trigger activation, evidence gates, and decision telemetry for Hermes Control Pack.
+tags: [orchestration, continuity, verification, telemetry, memory]
 provides_tools:
   - hcp_state_read
   - hcp_state_update
@@ -13,6 +13,7 @@ provides_tools:
   - hcp_evidence_record
 provides_hooks:
   - pre_llm_call
+  - transform_llm_output
   - post_tool_call
   - pre_verify
   - post_api_request
