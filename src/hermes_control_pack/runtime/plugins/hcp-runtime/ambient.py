@@ -6,6 +6,7 @@ import threading
 
 from .global_store import GlobalStateStore, looks_cross_session_instruction
 from .intent_capture import capture_explicit_future_response
+from .core import _root_for
 
 logger = logging.getLogger(__name__)
 _LOCK = threading.RLock()
@@ -59,10 +60,11 @@ def _pre_llm_call(session_id: str, **kwargs):
         captured = capture_explicit_future_response(user_message)
         supersedes = _explicit_supersession(user_message)
         match_message = "" if (captured or supersedes) else user_message
+        project_root = str(_root_for(session_id))
         context, active_ids = store.render_context(
             match_message,
             session_id=session_id,
-            project_root="",
+            project_root=project_root,
             max_chars=3000,
         )
 
