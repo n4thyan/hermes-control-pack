@@ -8,9 +8,15 @@ from .global_store import GlobalStateStore
 from .state_store import ProjectStateStore
 
 
-def _store(kwargs: dict[str, Any]) -> ProjectStateStore:
-    root = kwargs.get("hcp_project_root")
-    return ProjectStateStore(root)
+def _store(args: dict[str, Any], kwargs: dict[str, Any]) -> ProjectStateStore:
+    explicit_root = str(args.get("project_root") or "").strip()
+    root = explicit_root or kwargs.get("hcp_project_root")
+    store = ProjectStateStore(root)
+    try:
+        GlobalStateStore().note_project(str(store.project_root))
+    except Exception:
+        pass
+    return store
 
 
 def _global() -> GlobalStateStore:
@@ -23,7 +29,7 @@ def _ok(payload: Any) -> str:
 
 def state_read(args: dict, **kwargs) -> str:
     try:
-        store = _store(kwargs)
+        store = _store(args, kwargs)
         global_store = _global()
         scope = str(args.get("scope") or "summary")
         limit = max(1, min(int(args.get("limit") or 30), 200))
@@ -60,7 +66,7 @@ def state_update(args: dict, **kwargs) -> str:
         if not isinstance(patch, dict):
             return _ok({"error": "patch must be an object"})
         if scope in {"project", "task"}:
-            value = _store(kwargs).update(scope, patch, replace=bool(args.get("replace", False)))
+            value = _store(args, kwargs).update(scope, patch, replace=bool(args.get("replace", False)))
         elif scope == "global":
             value = _global().update_global(patch)
         elif scope == "instruction":
@@ -72,7 +78,7 @@ def state_update(args: dict, **kwargs) -> str:
             else:
                 value = global_store.record_instruction(
                     patch,
-                    project_root=str(kwargs.get("hcp_project_root") or ""),
+                    project_root=str(_store(args, kwargs).project_root),
                     session_id=str(kwargs.get("session_id") or ""),
                 )
         else:
@@ -87,7 +93,7 @@ def decision_record(args: dict, **kwargs) -> str:
         decision = str(args.get("decision") or "").strip()
         if not decision:
             return _ok({"error": "decision is required"})
-        event = _store(kwargs).record_decision(
+        event = _store(args, kwargs).record_decision(
             decision,
             rationale=str(args.get("rationale") or ""),
             alternatives=[str(x) for x in (args.get("alternatives") or [])],
@@ -105,7 +111,7 @@ def evidence_record(args: dict, **kwargs) -> str:
         subject = str(args.get("subject") or "").strip()
         if not subject:
             return _ok({"error": "subject is required"})
-        event = _store(kwargs).record_evidence(
+        event = _store(args, kwargs).record_evidence(
             subject,
             result=str(args.get("result") or "unknown"),
             kind=str(args.get("kind") or "verification"),
