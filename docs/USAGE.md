@@ -2,12 +2,25 @@
 
 ## Recommended setup
 
-From a cloned HCP checkout:
+Install once from anywhere:
 
 ```bash
+cd hermes-control-pack
 python -m pip install .
 hcp setup --project /path/to/project
 hcp doctor --project /path/to/project
+```
+
+After running `hcp setup`, HCP runtime assets live in your Hermes installation (`~/.hermes/`), global state lives under `~/.hermes/hcp/global/`, and you can **launch Hermes from any directory**:
+
+```bash
+cd C:\Users\pc
+hermes
+```
+
+```bash
+cd C:\Users\pc\Desktop\another-project
+hermes
 ```
 
 `hcp setup` does not require the research corpus. It installs the packaged runtime assets, enables `hcp-runtime` when the Hermes CLI is available, merges the balanced SOUL overlay, initializes `.hcp/state`, and installs/selects `hcp-continuity`.
@@ -35,6 +48,16 @@ hcp setup --project . --hermes-home /path/to/hermes/home
 ```
 
 HCP passes the same `HERMES_HOME` to Hermes CLI enable/config commands, so setup does not accidentally configure a different profile.
+
+## Verifying after installation
+
+After setup, verify HCP is active and cwd-independent:
+
+```bash
+hcp doctor --hermes-home ~/.hermes
+```
+
+Check that HCP runtime assets are under `~/.hermes/` and global state lives under `~/.hermes/hcp/global/` — **not** inside the HCP clone.
 
 ## Advanced/manual install
 

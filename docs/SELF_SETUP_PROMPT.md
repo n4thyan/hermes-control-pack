@@ -16,6 +16,10 @@ Requirements:
 - A prompt-research corpus is optional for analysis/recompilation and must not block the normal runtime installation.
 - Run HCP's doctor/validation checks after installation.
 - Verify Hermes can see the installed HCP integration without errors.
+- Important: After installation, verify that HCP is ambient and cwd-independent:
+  1. Check that HCP runtime assets are installed under HERMES_HOME (e.g., `~/.hermes/plugins/hcp-runtime/`, `~/.hermes/skills/`, `~/.hermes/skill-bundles/`).
+  2. Confirm global state lives under `~/.hermes/hcp/global/` (NOT inside the HCP clone).
+  3. The HCP Git clone should not be required to be the current working directory for HCP to function.
 - If something fails, diagnose and repair it rather than stopping at the first error.
 - At the end, give me a concise report of what was installed, what was backed up, what verification passed, and any optional features that remain unconfigured.
 ```

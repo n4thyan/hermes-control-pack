@@ -1,6 +1,6 @@
 # Hermes compatibility
 
-HCP 2.0 is designed around documented Hermes extension contracts rather than source patches.
+HCP 2.1 is designed around documented Hermes extension contracts rather than source patches.
 
 ## APIs used
 
@@ -11,6 +11,7 @@ HCP 2.0 is designed around documented Hermes extension contracts rather than sou
 - `ctx.register_hook("pre_llm_call", ...)` for dynamic continuity injection;
 - `post_tool_call`, `post_api_request`, `api_request_error`, and session hooks for observable telemetry;
 - `pre_verify` for the bounded completion-evidence gate;
+- `transform_llm_output` for deterministic exact-response enforcement;
 - `ctx.register_command()` for `/hcp-status`.
 
 The optional continuity engine subclasses `agent.context_compressor.ContextCompressor` and exposes the standard context-engine `name`/`compress` contract. HCP passes structured state via `memory_context` and otherwise delegates compression to Hermes.

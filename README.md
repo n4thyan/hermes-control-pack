@@ -1,16 +1,66 @@
 # Hermes Control Pack
 
-**A research-driven agent-harness augmentation layer for [NousResearch/Hermes Agent](https://github.com/NousResearch/hermes-agent).**
+**Hermes Control Pack 2.1 — Install once. Use Hermes anywhere.**
 
-Hermes Control Pack (HCP) studies captured system instructions and agent internals from major AI products, extracts transferable orchestration mechanisms, and reimplements them for Hermes as **system guidance, SOUL overlays, skills, persistent task state, verification gates, decision telemetry, and compression-safe continuity**.
+[![HCP 2.1](https://img.shields.io/badge/HCP-2.1-purple?style=flat-square)](https://github.com/n4thyan/hermes-control-pack)
+[![Tests](https://img.shields.io/github/actions/workflow/status/n4thyan/hermes-control-pack/tests.yml?style=flat-square&label=tests)](https://github.com/n4thyan/hermes-control-pack/actions/workflows/tests.yml)
+[![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.13-blue?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Windows](https://img.shields.io/badge/Windows-supported-success?style=flat-square&logo=windows)](https://github.com/n4thyan/hermes-control-pack/actions/workflows/tests.yml)
+[![Linux](https://img.shields.io/badge/Linux-supported-success?style=flat-square&logo=linux)](https://github.com/n4thyan/hermes-control-pack/actions/workflows/tests.yml)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+[![Hermes Agent](https://img.shields.io/badge/Hermes-Agent-8A2BE2?style=flat-square)](https://github.com/NousResearch/hermes-agent)
 
-The practical goal is simple: make whichever model Hermes is using **more coherent and reliable during real work** — understand before editing, preserve the user's objective across long sessions, recover from failed approaches, use tools deliberately, verify claims before finishing, and resume after compression or a new session without reconstructing the project from scratch.
+A research-driven agent-harness augmentation layer for [NousResearch/Hermes Agent](https://github.com/NousResearch/hermes-agent).
 
-> HCP improves the **agent harness**, not the model weights. It does not turn Hermes into GPT, Claude, Gemini, Grok, Fable, or any other model. The underlying model remains whatever provider/model Hermes is configured to use.
+HCP makes whichever model Hermes uses **more coherent and reliable during real work** — understand before editing, preserve your objective across sessions, recover from failed approaches, verify claims before finishing, and resume after compression or a new session without reconstructing the project from scratch.
 
-## What HCP actually does
+## What HCP 2.1 does differently
 
-A useful mental model is:
+> **Install HCP once, then use Hermes from any directory.** HCP 2.1 no longer requires you to launch Hermes from inside the `hermes-control-pack` clone.
+
+After installation, HCP runtime assets live inside your Hermes installation/profile, and global continuity state lives under `HERMES_HOME` — **not** inside the HCP repository. The HCP Git clone is the **source/development** repository; it does not need to be your working directory for normal use.
+
+Normal use after installation:
+
+```bash
+cd C:\Users\pc
+hermes
+```
+
+```bash
+cd C:\Users\pc\Desktop\some-project
+hermes
+```
+
+```bash
+cd C:\Users\pc\my-bin-weevils-project
+hermes
+```
+
+HCP should still be active in all of cases.
+
+### Two complementary scopes
+
+```text
+                Hermes Agent core
+                       │
+            ┌──────────┴──────────┐
+            │                     │
+     🌐 GLOBAL continuity     📁 PROJECT continuity
+     (blue/purple)            (green/orange)
+     follows you everywhere   augments when a project is detected
+```
+
+| | 🌐 GLOBAL (blue/purple) | 📁 PROJECT (green/orange) |
+|---|---|---|
+| **Lives where** | `<HERMES_HOME>/hcp/global/` | `.hcp/state/` in the project |
+| **Follows** | the Hermes user/profile | the project/workspace |
+| **CWD-dependent** | No — always available | Yes — attached to the project |
+| **Contains** | pending instructions, cross-session continuity, durable user constraints | objective, phase, decisions, evidence, next steps, project-scoped instructions |
+
+Project state **augments** global state when a project is detected. Project state never leaks into unrelated projects. Global state works regardless of which directory Hermes was launched from.
+
+## Architecture
 
 ```text
 base model
@@ -27,21 +77,83 @@ SOUL + skills + project state + evidence + tools
 
 HCP is not a second model and it is not a collection of prompts that the user must manually invoke. It is intended to become **ambient behavior around normal Hermes usage**.
 
-The project takes useful patterns observed across larger agent systems — task decomposition, durable state, verification discipline, recovery, handoff, evidence tracking, bounded autonomy, tool-use discipline, and context continuity — and adapts those ideas to Hermes using documented extension points.
+### How HCP is discovered when Hermes launches outside the clone
 
-That means HCP can improve how the same underlying model behaves without changing the model's weights. In practice, HCP aims to reduce failure modes such as:
+The `hcp setup` / `hcp install` commands copy HCP runtime assets (plugin, skills, bundles, SOUL overlay) into the user's Hermes home (`~/.hermes` on Linux, `%USERPROFILE%\.hermes` on Windows). Hermes discovers them from there on the next launch. **The HCP clone itself is not required at runtime.**
 
-- forgetting the real objective after a long session;
-- restarting a project from scratch after context compression;
-- editing code before understanding the repository;
-- repeatedly patching symptoms instead of finding the root cause;
-- reversing an earlier architectural decision accidentally;
-- claiming something works without actually verifying it;
-- repeating a failed approach after a restart;
-- losing blockers, next steps, or known-good state between sessions;
-- performing unrelated refactors while fixing a narrow issue.
+HCP runtime assets installed to `~/.hermes/`:
 
-HCP does **not** make the model literally learn new weights at runtime. Its "adaptation" comes from durable project/task state, recorded decisions, evidence, procedural skills, SOUL guidance, runtime hooks, and continuity-aware context handling.
+- `plugins/hcp-runtime/` — runtime plugin with hooks and tools
+- `plugins/context_engine/hcp-continuity/` — optional continuity compressor
+- `skills/` — 12 progressive-disclosure skills
+- `skill-bundles/` — 5 Hermes skill bundles
+- `SOUL.md` — managed balanced identity overlay (your custom text preserved)
+- `hcp/global/` — cwd-independent global state
+- `hcp/session-roots.json` — session-to-project mapping for resumed sessions
+
+### What HCP improves
+
+- [x] forgetting the real objective after a long session
+- [x] restarting a project from scratch after context compression
+- [x] editing code before understanding the repository
+- [x] repeatedly patching symptoms instead of finding root cause
+- [x] claiming something works without actually verifying it
+- [x] losing blockers, next steps, or known-good state between sessions
+
+HCP does **not** turn Hermes into GPT, Claude, Gemini, or any other model. The underlying model remains whatever provider/model Hermes is configured to use.
+
+## Quick start
+
+### Requirements
+
+- Python 3.11+
+- Hermes Agent installed
+
+### Let Hermes set itself up
+
+If Hermes is already running, paste this into Hermes:
+
+```text
+Set up Hermes Control Pack for this Hermes installation using:
+https://github.com/n4thyan/hermes-control-pack
+
+Read the repository README and relevant installation/compatibility docs first, then install and configure HCP end to end yourself. Inspect my current Hermes installation before changing anything. Preserve and back up any existing SOUL.md, .hermes.md, skills, bundles, plugins, config, and user customizations before replacing or merging them. Prefer HCP's supported plugin/integration path over patching Hermes core. Use the recommended `hcp setup` flow where available, run HCP's doctor/validation checks afterward, verify the HCP plugin/skills/bundles and continuity integration actually load, and diagnose any failures instead of stopping at the first error. Do not delete unrelated files or user data. At the end, briefly report what you installed, what you backed up, what verification passed, and any optional features that remain unconfigured.
+```
+
+A longer safeguarded version is in [docs/SELF_SETUP_PROMPT.md](docs/SELF_SETUP_PROMPT.md).
+
+### Manual setup
+
+```bash
+git clone https://github.com/n4thyan/hermes-control-pack.git
+cd hermes-control-pack
+python -m pip install .
+hcp setup --project /path/to/your-project
+hcp doctor --project /path/to/your-project
+```
+
+After running `hcp setup`, you can launch Hermes from **any** directory — HCP stays active.
+
+`hcp setup` uses the runtime assets packaged with HCP. By default it:
+
+- installs the `hcp-runtime` Hermes plugin and asks Hermes to enable it;
+- installs the HCP skills and skill bundles;
+- merges the **balanced** HCP identity block into `SOUL.md` without deleting existing user-authored personality text;
+- initializes project-local structured continuity under `.hcp/state/`;
+- installs and selects `hcp-continuity`, a thin subclass of Hermes' built-in `ContextCompressor` that supplies structured HCP state as compaction grounding;
+- leaves an existing project `.hermes.md` alone unless `--project-context` is explicitly requested.
+
+Keep Hermes' normal compressor instead with:
+
+```bash
+hcp setup --project /path/to/project --no-context-engine
+```
+
+The context-engine choice is reversible:
+
+```bash
+hermes config set context.engine compressor
+```
 
 ## How Hermes / the AI is expected to understand HCP
 
@@ -97,101 +209,42 @@ Install HCP once and keep using Hermes as usual. The visible differences should 
 
 In other words: **same model, better operating discipline around the model.**
 
-## HCP 2.1 architecture
+## HCP 2.1 architecture details
 
-HCP 2.1 keeps the proven HCP 2.0 project kernel and adds cwd-independent ambient continuity:
+### Global continuity (`🌐` blue/purple)
 
-```text
-                         base model
-          GPT / Claude / Gemini / open-weight / ...
-                              │
-                              ▼
-                     Hermes Agent core
-                              │
-                   documented plugin hooks
-                              │
-             ┌────────────────┴────────────────┐
-             │      HCP runtime controller      │
-             │                                  │
-             │ system kernel + task routing     │
-             │ persistent project/task state    │
-             │ decision + evidence ledgers      │
-             │ completion verification gate     │
-             │ observable decision telemetry    │
-             │ compression continuity grounding │
-             │                                  │
-             │ + cwd-independent global state   │
-             │ + structured pending intents     │
-             │ + automatic future-instruction   │
-             │   capture                        │
-             └────────────────┬─────────────────┘
-                              │
-               SOUL + skills + project context
-```
+- **cwd-independent** — stored under `<HERMES_HOME>/hcp/global/`, not tied to any project
+- **structured pending instructions** with trigger, timing, scope, lifecycle, priority, and one-shot consumption
+- **explicit future-intent capture** — e.g. "next session when I say X, reply with Y"
+- **trigger/activation semantics** — exact, contains, regex, next-session, always-active
+- **one-shot completion** — successful `respond_exact` instructions are marked completed, not repeated forever
+- **current-user supersession** — new direct user intent outranks stale persisted triggers
+- **interruption/restart recovery** via `session-roots.json` mapping
 
-HCP deliberately prefers Hermes' documented plugin and context-engine APIs over patching Hermes core. This keeps the integration inspectable, reversible, and easier to upgrade.
+### Project continuity (`📁` green/orange)
 
-## Research corpus and credit
+- **associated with the detected project/workspace** — stored in `.hcp/state/`
+- **objective, phase, acceptance criteria, changed paths, blockers, next steps**
+- **decisions + evidence ledgers** with append-only records
+- **project-scoped pending instructions** that activate only inside their project
+- **project state AUGMENTS global state** — never replaces it
 
-HCP was bootstrapped against:
+### Other HCP 2.1 changes
 
-- **Primary research corpus:** [`asgeirtj/system_prompts_leaks`](https://github.com/asgeirtj/system_prompts_leaks)
-- **Target runtime:** [`NousResearch/hermes-agent`](https://github.com/NousResearch/hermes-agent)
+- ambient pre-turn continuity bootstrap via `pre_llm_call` hook
+- packaged runtime/source synchronization between `plugins/` and `src/hermes_control_pack/runtime/`
+- the project_root ambient routing bug fixed during final release work (`project_root=""` → resolved via session→project mapping)
+- expanded tests for launch-directory independence, project-scoped isolation, and cross-session behavior
 
-The upstream corpus does the substantial work of collecting and organizing captured system-prompt and agent material. HCP's original work is the **cross-agent mechanism model, Hermes-specific runtime integration, persistent continuity model, compiler/indexer, SOUL profiles, skills/bundles, verification/telemetry layer, installer, tests, and evaluation tooling**.
+## HCP 2.0 kernel preserved
 
-HCP does **not vendor the raw corpus by default**. Runtime installation does not require it. A local ZIP/checkout is only needed when reproducing the research analysis or rebuilding against a particular corpus snapshot. See [CREDITS.md](CREDITS.md), [THIRD_PARTY.md](THIRD_PARTY.md), and [docs/RESEARCH_METHOD.md](docs/RESEARCH_METHOD.md).
+HCP 2.1 keeps the proven HCP 2.0 project kernel intact:
 
-## Quick start
-
-Requirements:
-
-- Python 3.11+
-- Hermes Agent installed
-
-### Easiest option: let Hermes set itself up
-
-If Hermes is already running, paste this into Hermes:
-
-```text
-Set up Hermes Control Pack for this Hermes installation using:
-https://github.com/n4thyan/hermes-control-pack
-
-Read the repository README and relevant installation/compatibility docs first, then install and configure HCP end to end yourself. Inspect my current Hermes installation before changing anything. Preserve and back up any existing SOUL.md, .hermes.md, skills, bundles, plugins, config, and user customizations before replacing or merging them. Prefer HCP's supported plugin/integration path over patching Hermes core. Use the recommended `hcp setup` flow where available, run HCP's doctor/validation checks afterward, verify the HCP plugin/skills/bundles and continuity integration actually load, and diagnose any failures instead of stopping at the first error. Do not delete unrelated files or user data. At the end, briefly report what you installed, what you backed up, what verification passed, and any optional features that remain unconfigured.
-```
-
-A longer safeguarded version is in [docs/SELF_SETUP_PROMPT.md](docs/SELF_SETUP_PROMPT.md).
-
-### Manual setup
-
-```bash
-git clone https://github.com/n4thyan/hermes-control-pack.git
-cd hermes-control-pack
-python -m pip install .
-hcp setup --project /path/to/your-project
-hcp doctor --project /path/to/your-project
-```
-
-`hcp setup` uses the runtime assets packaged with HCP. By default it:
-
-- installs the `hcp-runtime` Hermes plugin and asks Hermes to enable it;
-- installs the HCP skills and skill bundles;
-- merges the **balanced** HCP identity block into `SOUL.md` without deleting existing user-authored personality text;
-- initializes project-local structured continuity under `.hcp/state/`;
-- installs and selects `hcp-continuity`, a thin subclass of Hermes' built-in `ContextCompressor` that supplies structured HCP state as compaction grounding;
-- leaves an existing project `.hermes.md` alone unless `--project-context` is explicitly requested.
-
-Keep Hermes' normal compressor instead with:
-
-```bash
-hcp setup --project /path/to/project --no-context-engine
-```
-
-The context-engine choice is reversible:
-
-```bash
-hermes config set context.engine compressor
-```
+- `PROJECT_STATE`, `TASK_STATE`, `DECISION_LOG`, `EVIDENCE_LEDGER`, `TRACE` stores
+- four model-callable tools: `hcp_state_read`, `hcp_state_update`, `hcp_decision_record`, `hcp_evidence_record`
+- bounded evidence-based completion gating (`pre_verify`)
+- observable harness telemetry without requesting or storing model chain-of-thought
+- private Git exclusion for `.hcp/` without modifying tracked `.gitignore`
 
 ## Persistent continuity
 
@@ -269,8 +322,6 @@ hcp build /path/to/system_prompts_leaks-main.zip --out build/hcp
 
 HCP scans every file, hashes the source, classifies source families/artifact types, measures behavior signals, and builds a **mechanism matrix** mapping observed cross-agent patterns to HCP implementation targets. These are coverage/provenance signals, not vendor rankings.
 
-The supplied bootstrap corpus snapshot contained 493 files, 461 decoded text files, and roughly 2.165 million words. Its source fingerprint is recorded in [`sources/bootstrap-source-lock.json`](sources/bootstrap-source-lock.json).
-
 ## Why not concatenate every captured prompt into Hermes?
 
 Because that would usually make the agent worse:
@@ -315,7 +366,7 @@ See [benchmarks/README.md](benchmarks/README.md). The repository intentionally s
 
 ```text
 src/hermes_control_pack/   CLI, compiler, analysis, installer, state model
-plugins/hcp-runtime/       Hermes runtime plugin
+plugins/hcp-runtime/       Hermes runtime plugin (reviewable top-level sources)
 plugins/context_engine/    optional compression-continuity engine
 souls/                     managed SOUL overlays
 skills/                    task procedures

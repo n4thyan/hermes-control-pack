@@ -6,13 +6,17 @@ HCP treats a model context window as a **working set**, not as the authoritative
 
 HCP 2.1 separates continuity into **global/user state** and **project state**.
 
+### Global state (🌐 blue/purple — cwd-independent)
+
 Global state lives under `<HERMES_HOME>/hcp/global/` and is deliberately independent of the directory from which Hermes was launched:
 
 - `GLOBAL_STATE.json` — cwd-independent durable user constraints, recent handoffs, and global continuity metadata.
 - `PENDING_INSTRUCTIONS.json` — structured future/cross-session instructions with triggers, lifecycle state, scope, timing, and one-shot consumption semantics.
 - `GLOBAL_TRACE.jsonl` — observable global continuity events.
 
-This means global continuity still works whether Hermes is launched from a project checkout, `C:\Users\...`, the user's home directory, or another arbitrary path.
+This means global continuity still works whether Hermes is launched from a project checkout, `C:\Users\pc`, the user's home directory, or another arbitrary path.
+
+### Project state (📁 green/orange — project-attached)
 
 Project-local runtime state remains under `.hcp/state/`:
 
@@ -22,7 +26,16 @@ Project-local runtime state remains under `.hcp/state/`:
 - `EVIDENCE_LEDGER.jsonl` — append-only verification and observed-result records.
 - `TRACE.jsonl` — observable harness telemetry. It records events and outcomes, not private model reasoning.
 
-The two layers are intentionally complementary: global state follows the Hermes user/profile everywhere, while project state stays attached to the repository/workspace it describes.
+### How they relate
+
+The two layers are intentionally complementary: global state follows the Hermes user/profile everywhere, while project state stays attached to the repository/workspace it describes. **Project state augments global state when a project is detected — it never replaces it.**
+
+| | 🌐 Global | 📁 Project |
+|---|---|---|
+| Lives where | `<HERMES_HOME>/hcp/global/` | `.hcp/state/` in the project |
+| Follows | the Hermes user/profile | the project/workspace |
+| CWD-dependent | No | Yes |
+| Contains | pending instructions, cross-session continuity, durable user constraints | objective, phase, decisions, evidence, next steps |
 
 ## Pending instructions
 
@@ -44,7 +57,7 @@ consume_after_success
 
 On every user turn, HCP checks relevant pending instructions before the model answers. Matching instructions are injected as **active continuity instructions**, not merely passive memories.
 
-For narrow, explicit forms such as “next session when I say X, reply with Y” or “tomorrow when I say X, respond with Y”, HCP can capture the instruction automatically. Ambiguous future intent is not silently promoted into an executable instruction; instead the runtime tells Hermes to persist it explicitly through `hcp_state_update`.
+For narrow, explicit forms such as "next session when I say X, reply with Y" or "tomorrow when I say X, respond with Y", HCP can capture the instruction automatically. Ambiguous future intent is not silently promoted into an executable instruction; instead the runtime tells Hermes to persist it explicitly through `hcp_state_update`.
 
 For `respond_exact` instructions, HCP also uses Hermes' documented `transform_llm_output` surface. If the model ignores a matched exact-response instruction, the runtime can replace the final text with the user-authored response. Successful one-shot instructions are then marked completed rather than repeated forever.
 
