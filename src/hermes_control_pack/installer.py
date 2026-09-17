@@ -22,6 +22,72 @@ def _stamp() -> str:
     return time.strftime("%Y%m%d-%H%M%S")
 
 
+def _hermes_backup_root(hermes_home: Path) -> Path:
+    """Return the directory where HCP-managed file/directory backups are stored.
+
+    Backups must NEVER live inside ``<hermes_home>/plugins/`` alongside a
+    plugin directory — Hermes' plugin scanner walks every subdirectory of
+    ``plugins/`` looking for ``plugin.yaml`` manifests, and a backup of
+    ``hcp-runtime`` carries the *same* ``name: hcp-runtime`` in its
+    ``plugin.yaml``.  Directories are scanned in sorted order and the scanner
+    uses a last-writer-wins dedup keyed on ``name``, so an alphabetically-later
+    backup directory silently shadows the real plugin with older code.  This
+    was the root cause of the 2.0-vs-2.1 schema mismatch.
+
+    Backups go into a sibling ``.hcp-backups`` directory that the plugin
+    scanner never visits.
+    """
+    return hermes_home / ".hcp-backups"
+
+
+def _backup_file(src_path: Path, hermes_home: Path, messages: list[str], label: str) -> Path:
+    """Backup a single file to the HCP backups directory.
+
+    Returns the backup path.
+    """
+    backup_root = _hermes_backup_root(hermes_home)
+    backup_root.mkdir(parents=True, exist_ok=True)
+    backup_name = src_path.name + f".hcp-backup-{_stamp()}"
+    backup = backup_root / backup_name
+    shutil.copy2(src_path, backup)
+    messages.append(f"Backed up existing {label}: {backup}")
+    return backup
+
+
+def _backup_dir(src_path: Path, hermes_home: Path, messages: list[str], label: str) -> Path:
+    """Backup a directory tree to the HCP backups directory.
+
+    Returns the backup path.
+    """
+    backup_root = _hermes_backup_root(hermes_home)
+    backup_root.mkdir(parents=True, exist_ok=True)
+    backup_name = src_path.name + f".hcp-backup-{_stamp()}"
+    backup = backup_root / backup_name
+    shutil.copytree(src_path, backup, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
+    messages.append(f"Backed up existing {label}: {backup}")
+    return backup
+
+
+def _cleanup_stale_plugin_backups(plugins_dir: Path, messages: list[str]) -> None:
+    """Remove leftover ``<name>.hcp-backup-*`` directories from inside plugins/.
+
+    Older HCP installers wrote backups as siblings of the target inside the
+    plugins directory (e.g. ``plugins/hcp-runtime.hcp-backup-...``).  Hermes'
+    plugin scanner picks these up and dedups by ``name``, so the backup can
+    shadow the real plugin.  This is a one-time cleanup for any pre-existing
+    stale backups; new backups now go to ``.hcp-backups/`` outside plugins/.
+    """
+    if not plugins_dir.is_dir():
+        return
+    removed = 0
+    for child in plugins_dir.iterdir():
+        if child.is_dir() and ".hcp-backup-" in child.name:
+            shutil.rmtree(child, ignore_errors=True)
+            removed += 1
+    if removed:
+        messages.append(f"Cleaned up {removed} stale plugin backup directory(ies) from {plugins_dir} (root cause: plugin scanner name collision)")
+
+
 def _same_file(a: Path, b: Path) -> bool:
     return a.exists() and b.exists() and filecmp.cmp(a, b, shallow=False)
 
@@ -44,33 +110,20 @@ def _same_tree(a: Path, b: Path) -> bool:
     return left.keys() == right.keys() and all(filecmp.cmp(left[k], right[k], shallow=False) for k in left)
 
 
-def _backup_file(path: Path) -> Path:
-    backup = path.with_name(path.name + f".hcp-backup-{_stamp()}")
-    shutil.copy2(path, backup)
-    return backup
-
-
-def _backup_dir(path: Path) -> Path:
-    backup = path.with_name(path.name + f".hcp-backup-{_stamp()}")
-    shutil.copytree(path, backup)
-    return backup
-
-
-def _install_file(src: Path, dst: Path, force: bool, messages: list[str], label: str) -> None:
+def _install_file(src: Path, dst: Path, hermes_home: Path, force: bool, messages: list[str], label: str) -> None:
     if _same_file(src, dst):
         messages.append(f"Already current {label}: {dst}")
         return
     if dst.exists():
         if not force:
             raise FileExistsError(f"{dst} differs from HCP. Re-run with --force to back it up and replace it.")
-        backup = _backup_file(dst)
-        messages.append(f"Backed up existing {label}: {backup}")
+        _backup_file(dst, hermes_home, messages, label)
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dst)
     messages.append(f"Installed {label}: {dst}")
 
 
-def _install_text(content: str, dst: Path, force: bool, messages: list[str], label: str) -> None:
+def _install_text(content: str, dst: Path, hermes_home: Path, force: bool, messages: list[str], label: str) -> None:
     normalized = content if content.endswith("\n") else content + "\n"
     if dst.exists():
         try:
@@ -81,14 +134,13 @@ def _install_text(content: str, dst: Path, force: bool, messages: list[str], lab
             pass
         if not force:
             raise FileExistsError(f"{dst} differs from HCP. Re-run with --force to back it up and replace it.")
-        backup = _backup_file(dst)
-        messages.append(f"Backed up existing {label}: {backup}")
+        _backup_file(dst, hermes_home, messages, label)
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(normalized, encoding="utf-8")
     messages.append(f"Installed {label}: {dst}")
 
 
-def _merge_soul_profile(src: Path, dst: Path, messages: list[str], profile: str) -> None:
+def _merge_soul_profile(src: Path, dst: Path, hermes_home: Path, messages: list[str], profile: str) -> None:
     """Install HCP identity as a managed block while preserving user-authored SOUL text."""
     body = src.read_text(encoding="utf-8").strip()
     block = f"{SOUL_BEGIN}\n{body}\n{SOUL_END}"
@@ -112,22 +164,20 @@ def _merge_soul_profile(src: Path, dst: Path, messages: list[str], profile: str)
         messages.append(f"Already current SOUL profile {profile}: {dst}")
         return
     if dst.exists():
-        backup = _backup_file(dst)
-        messages.append(f"Backed up existing SOUL.md before managed merge: {backup}")
+        _backup_file(dst, hermes_home, messages, f"SOUL.md")
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_text(merged, encoding="utf-8")
     messages.append(f"Merged HCP SOUL profile {profile}: {dst}")
 
 
-def _install_tree(src: Path, dst: Path, force: bool, messages: list[str], label: str) -> None:
+def _install_tree(src: Path, dst: Path, hermes_home: Path, force: bool, messages: list[str], label: str) -> None:
     if _same_tree(src, dst):
         messages.append(f"Already current {label}: {dst}")
         return
     if dst.exists():
         if not force:
             raise FileExistsError(f"{dst} differs from HCP. Re-run with --force to back it up and replace it.")
-        backup = _backup_dir(dst)
-        messages.append(f"Backed up existing {label}: {backup}")
+        _backup_dir(dst, hermes_home, messages, label)
         shutil.rmtree(dst)
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo"))
@@ -237,25 +287,30 @@ def install_pack(
     hermes_home = hermes_home.expanduser().resolve()
     project_dir.mkdir(parents=True, exist_ok=True)
 
+    # Clean up any stale backup directories left by older HCP installers
+    # inside the plugins/ directory (which the plugin scanner must not see).
+    _cleanup_stale_plugin_backups(hermes_home / "plugins", messages)
+
     if install_context:
         if build_dir is not None:
-            _install_file(build_dir / ".hermes.md", project_dir / ".hermes.md", force, messages, "project context")
+            _install_file(build_dir / ".hermes.md", project_dir / ".hermes.md", hermes_home, force, messages, "project context")
         else:
-            _install_text(KERNEL, project_dir / ".hermes.md", force, messages, "project context")
+            _install_text(KERNEL, project_dir / ".hermes.md", hermes_home, force, messages, "project context")
 
     if install_skills:
         for skill in sorted((assets / "skills").iterdir()):
             if skill.is_dir():
-                _install_tree(skill, hermes_home / "skills" / skill.name, force, messages, f"skill {skill.name}")
+                _install_tree(skill, hermes_home / "skills" / skill.name, hermes_home, force, messages, f"skill {skill.name}")
 
     if install_bundles:
         for bundle in sorted((assets / "bundles").glob("*.yaml")):
-            _install_file(bundle, hermes_home / "skill-bundles" / bundle.name, force, messages, f"bundle {bundle.stem}")
+            _install_file(bundle, hermes_home / "skill-bundles" / bundle.name, hermes_home, force, messages, f"bundle {bundle.stem}")
 
     if install_plugin:
         _install_tree(
             assets / "plugins" / "hcp-runtime",
             hermes_home / "plugins" / "hcp-runtime",
+            hermes_home,
             force,
             messages,
             "runtime plugin hcp-runtime",
@@ -272,6 +327,7 @@ def install_pack(
         _install_tree(
             engine_src,
             hermes_home / "plugins" / "context_engine" / "hcp-continuity",
+            hermes_home,
             force,
             messages,
             "context engine hcp-continuity",
@@ -289,7 +345,7 @@ def install_pack(
         if not soul.exists():
             available = ", ".join(p.stem for p in sorted((assets / "souls").glob("*.md")))
             raise ValueError(f"Unknown SOUL profile {soul_profile!r}. Available: {available}")
-        _merge_soul_profile(soul, hermes_home / "SOUL.md", messages, soul_profile)
+        _merge_soul_profile(soul, hermes_home / "SOUL.md", hermes_home, messages, soul_profile)
 
     if initialize_state:
         state = ProjectStateStore(project_dir)
