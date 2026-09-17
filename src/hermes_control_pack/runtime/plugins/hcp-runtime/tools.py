@@ -4,12 +4,17 @@ from __future__ import annotations
 import json
 from typing import Any
 
+from .global_store import GlobalStateStore
 from .state_store import ProjectStateStore
 
 
 def _store(kwargs: dict[str, Any]) -> ProjectStateStore:
     root = kwargs.get("hcp_project_root")
     return ProjectStateStore(root)
+
+
+def _global() -> GlobalStateStore:
+    return GlobalStateStore()
 
 
 def _ok(payload: Any) -> str:
@@ -19,10 +24,14 @@ def _ok(payload: Any) -> str:
 def state_read(args: dict, **kwargs) -> str:
     try:
         store = _store(kwargs)
+        global_store = _global()
         scope = str(args.get("scope") or "summary")
         limit = max(1, min(int(args.get("limit") or 30), 200))
         if scope == "summary":
-            value = store.summary(decisions=min(limit, 20), evidence=min(limit, 30))
+            value = {
+                "project": store.summary(decisions=min(limit, 20), evidence=min(limit, 30)),
+                "global": global_store.summary(pending_limit=min(limit, 30)),
+            }
         elif scope == "project":
             value = store.read_project()
         elif scope == "task":
@@ -33,6 +42,10 @@ def state_read(args: dict, **kwargs) -> str:
             value = store.evidence(limit)
         elif scope == "trace":
             value = store.trace_events(limit)
+        elif scope == "global":
+            value = global_store.read_global()
+        elif scope == "instructions":
+            value = global_store.instructions()[-limit:]
         else:
             return _ok({"error": f"unknown scope: {scope}"})
         return _ok({"scope": scope, "project_root": str(store.project_root), "value": value})
@@ -46,7 +59,24 @@ def state_update(args: dict, **kwargs) -> str:
         patch = args.get("patch")
         if not isinstance(patch, dict):
             return _ok({"error": "patch must be an object"})
-        value = _store(kwargs).update(scope, patch, replace=bool(args.get("replace", False)))
+        if scope in {"project", "task"}:
+            value = _store(kwargs).update(scope, patch, replace=bool(args.get("replace", False)))
+        elif scope == "global":
+            value = _global().update_global(patch)
+        elif scope == "instruction":
+            global_store = _global()
+            instruction_id = str(patch.get("instruction_id") or patch.get("id") or "").strip()
+            if instruction_id and any(key in patch for key in ("status", "completed_at", "note", "priority")):
+                changes = {k: v for k, v in patch.items() if k not in {"instruction_id", "id"}}
+                value = global_store.update_instruction(instruction_id, changes)
+            else:
+                value = global_store.record_instruction(
+                    patch,
+                    project_root=str(kwargs.get("hcp_project_root") or ""),
+                    session_id=str(kwargs.get("session_id") or ""),
+                )
+        else:
+            return _ok({"error": "scope must be project, task, global, or instruction"})
         return _ok({"ok": True, "scope": scope, "value": value})
     except Exception as exc:
         return _ok({"error": f"hcp_state_update failed: {exc}"})
