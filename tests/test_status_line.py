@@ -38,9 +38,19 @@ class StartupStatusLineTests(unittest.TestCase):
         (plugin_dir / "plugin.yaml").write_text(
             "name: hcp-runtime\nversion: {}\n".format(version)
         )
-        for f in ("__init__.py", "core.py", "schemas.py", "tools.py", "ambient.py"):
-            (plugin_dir / f).write_text("placeholder\n")
-        (plugin_dir / "state_store.py").write_text("placeholder\n")
+        # Copy real bundled files so drift detection passes
+        src_root = Path(__file__).resolve().parents[1] / "src" / "hermes_control_pack" / "runtime" / "plugins" / "hcp-runtime"
+        if src_root.exists():
+            for f in ("__init__.py", "core.py", "schemas.py", "tools.py", "ambient.py", "state_store.py"):
+                src_file = src_root / f
+                if src_file.exists():
+                    (plugin_dir / f).write_text(src_file.read_text())
+                else:
+                    (plugin_dir / f).write_text("placeholder\n")
+        else:
+            for f in ("__init__.py", "core.py", "schemas.py", "tools.py", "ambient.py"):
+                (plugin_dir / f).write_text("placeholder\n")
+            (plugin_dir / "state_store.py").write_text("placeholder\n")
 
     def test_line_contains_version_and_enabled(self):
         self._setup_plugin()

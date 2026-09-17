@@ -79,17 +79,20 @@ def _check_runtime_sync(hermes_home: Path) -> tuple[str, str]:
 
     # Spot-check a few key files for content drift
     try:
-        from hermes_control_pack.runtime.plugins.hcp_runtime.state_store import __file__ as _
-        bundled_root = Path(__file__).resolve().parents[2] / "runtime" / "plugins" / "hcp-runtime"
-        drift_files = []
-        for name in ("core.py", "schemas.py", "tools.py", "ambient.py"):
-            installed = plugin_dir / name
-            bundled = bundled_root / name
-            if installed.exists() and bundled.exists():
-                if not filecmp.cmp(installed, bundled, shallow=False):
-                    drift_files.append(name)
-        if drift_files:
-            return ("file-drift", f"content drift in: {', '.join(drift_files)}")
+        # hcp-runtime dir has a hyphen so we can't import it directly; load by path
+        import importlib.util
+        state_store_path = Path(__file__).resolve().parent / "state_store.py"
+        if state_store_path.exists():
+            bundled_root = Path(__file__).resolve().parent
+            drift_files = []
+            for name in ("core.py", "schemas.py", "tools.py", "ambient.py"):
+                installed = plugin_dir / name
+                bundled = bundled_root / name
+                if installed.exists() and bundled.exists():
+                    if not filecmp.cmp(installed, bundled, shallow=False):
+                        drift_files.append(name)
+            if drift_files:
+                return ("file-drift", f"content drift in: {', '.join(drift_files)}")
     except Exception:
         pass
 
