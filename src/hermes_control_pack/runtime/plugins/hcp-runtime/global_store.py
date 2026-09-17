@@ -180,6 +180,7 @@ class GlobalStateStore:
         if not raw:
             return
         root = Path(raw)
+        # Do not turn an arbitrary launch directory such as the user's home into a project.
         if not ((root / ".git").exists() or (root / ".hcp" / "state").exists()):
             return
         state = self.read_global()
@@ -348,6 +349,7 @@ class GlobalStateStore:
         elif satisfied:
             self.update_instruction(instruction_id, {"status": "pending", "triggered_at": "", "triggered_session_id": ""})
         else:
+            # Failed execution must not silently consume a one-shot instruction.
             self.update_instruction(instruction_id, {"status": "pending", "triggered_at": "", "triggered_session_id": ""})
 
     def trace(self, event_type: str, data: dict[str, Any] | None = None) -> None:

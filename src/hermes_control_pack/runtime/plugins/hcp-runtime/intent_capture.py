@@ -70,6 +70,7 @@ def capture_explicit_future_response(user_message: str) -> dict[str, Any] | None
         return None
 
     trigger = ""
+    # Prefer an explicitly quoted trigger when there are two quoted spans.
     if len(quotes) >= 2:
         trigger = quotes[-2]
     if not trigger:

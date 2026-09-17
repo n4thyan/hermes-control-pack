@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+import json
 import logging
 import threading
 
@@ -32,6 +33,8 @@ def _pre_llm_call(session_id: str, **kwargs):
         store = GlobalStateStore()
         store.ensure()
 
+        # Detect a new explicit future-response instruction before matching existing
+        # triggers, so mentioning the trigger while defining it cannot fire it now.
         captured = capture_explicit_future_response(user_message)
         match_message = "" if captured else user_message
         context, active_ids = store.render_context(
