@@ -170,7 +170,17 @@ def _pre_llm_call(session_id: str, **kwargs):
             "platform": str(kwargs.get("platform") or ""),
             "is_first_turn": bool(kwargs.get("is_first_turn", False)),
         })
-        return {"context": store.render_context(max_chars=6500)}
+        # Inject cached read-only evidence to avoid redundant tool calls
+        try:
+            from .reuse_orchestrator import build_evidence_context_block
+            project_root = _root_for(session_id)
+            evidence_block = build_evidence_context_block(str(project_root))
+        except Exception:
+            evidence_block = ""
+        base_context = store.render_context(max_chars=6500)
+        if evidence_block:
+            return {"context": base_context + "\n\n" + evidence_block}
+        return {"context": base_context}
     except Exception as exc:
         logger.warning("HCP continuity injection failed: %s", exc)
         return None

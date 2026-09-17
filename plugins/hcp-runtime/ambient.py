@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 import logging
 import threading
@@ -11,6 +12,28 @@ from .core import _root_for
 logger = logging.getLogger(__name__)
 _LOCK = threading.RLock()
 _ACTIVE_BY_SESSION: dict[str, list[str]] = {}
+_STARTUP_STATUS_PRINTED = False
+
+
+def _print_startup_banner(session_id: str) -> None:
+    """Print a one-time HCP status line on fresh Hermes startup."""
+    global _STARTUP_STATUS_PRINTED
+    with _LOCK:
+        if _STARTUP_STATUS_PRINTED:
+            return
+        _STARTUP_STATUS_PRINTED = True
+    try:
+        import importlib.util
+        # Load status_line.py by path (dir has a hyphen, can't import normally)
+        plugin_dir = Path(__file__).resolve().parent
+        src = plugin_dir / "status_line.py"
+        spec = importlib.util.spec_from_file_location("hcp_status_line", src)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        line = mod.build_startup_line()
+        print(line, flush=True)
+    except Exception:
+        pass
 
 
 def _equivalent_pending(store: GlobalStateStore, payload: dict[str, Any]) -> dict[str, Any] | None:
@@ -172,6 +195,9 @@ def _on_session_start(session_id: str, **kwargs) -> None:
             "platform": str(kwargs.get("platform") or ""),
             "model": str(kwargs.get("model") or ""),
         })
+        is_first_turn = bool(kwargs.get("is_first_turn", False))
+        if is_first_turn:
+            _print_startup_banner(session_id)
     except Exception as exc:
         logger.debug("HCP global session bootstrap failed: %s", exc)
 
