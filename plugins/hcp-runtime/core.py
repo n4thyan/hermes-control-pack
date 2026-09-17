@@ -187,6 +187,21 @@ def _post_tool_call(tool_name: str, args: dict, result: str, **kwargs) -> None:
     command = str((args or {}).get("command") or "")
     success = status in {"", "success", "ok"} and not str(result).lstrip().lower().startswith(("error", "failed"))
 
+    # Cache tool evidence for reuse (tool_evidence_reuse mechanism)
+    try:
+        from hermes_control_pack.evidence_cache import get_cache
+        project_root = _root_for(session_id)
+        cache = get_cache(project_root)
+        cache.store(
+            tool_name=tool_name,
+            args=args or {},
+            result=result,
+            staleness_hint="mutation" if low_name in _MUTATING_TOOLS else "read",
+            source="post_tool_call",
+        )
+    except Exception:
+        pass
+
     mutation_observed = low_name in _MUTATING_TOOLS or (low_name == "terminal" and bool(_TERMINAL_MUTATION_RE.search(command)))
     if mutation_observed:
         rt["mutation_seq"] += 1
