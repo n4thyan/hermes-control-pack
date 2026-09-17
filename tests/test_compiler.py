@@ -41,7 +41,7 @@ class CompilerTests(unittest.TestCase):
             for rel in expected:
                 self.assertTrue((out / rel).exists(), rel)
             manifest = json.loads((out / "hcp-manifest.json").read_text())
-            self.assertEqual(manifest["hcp_version"], "2.1.0")
+            self.assertEqual(manifest["hcp_version"], "2.2.0")
             self.assertEqual(manifest["corpus_fingerprint"], idx["source_sha256"])
             self.assertIn(".hermes.md", manifest["artifacts"])
             self.assertGreaterEqual(manifest["mechanism_count"], 1)
