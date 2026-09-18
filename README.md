@@ -79,7 +79,9 @@ HCP is not a second model and it is not a collection of prompts that the user mu
 
 ### How HCP is discovered when Hermes launches outside the clone
 
-The `hcp setup` / `hcp install` commands copy HCP runtime assets (plugin, skills, bundles, SOUL overlay) into the user's Hermes home (`~/.hermes` on Linux, `%USERPROFILE%\.hermes` on Windows). Hermes discovers them from there on the next launch. **The HCP clone itself is not required at runtime.**
+The `hcp setup` / `hcp install` commands copy HCP runtime assets (plugin, skills, bundles, SOUL overlay) into the user's Hermes home (`~/.hermes` on Linux, `%USERPROFILE%\.hermes` on Windows). Hermes discovers them from there on the next launch. After installation, launch Hermes from **any** directory — HCP stays active.
+
+**Hermes does not need to be told which project you are working in.** On each launch the runtime detects (or auto-creates) project-local continuity: when your working directory is inside a Git checkout, `find_project_root()` resolves the repository root and `ProjectStateStore.ensure()` initializes `.hcp/state/` if it does not yet exist. A brand-new repository therefore starts with empty project state that is populated automatically as work proceeds — you do not need to run `hcp setup --project .` for every new repo. `hcp setup --project` remains available for the one-time global install/config flow (plugin enable, skills, SOUL merge, compressor selection); project-local state is created lazily by the runtime, not by setup.
 
 HCP runtime assets installed to `~/.hermes/`:
 
@@ -132,14 +134,14 @@ hcp setup --project /path/to/your-project
 hcp doctor --project /path/to/your-project
 ```
 
-After running `hcp setup`, you can launch Hermes from **any** directory — HCP stays active.
+After running `hcp setup`, you can launch Hermes from **any** directory — HCP stays active. The `hcp setup --project` form is the one-time global install/configuration flow; for ordinary new repositories you do not need to run setup per project. The runtime auto-detects the project (nearest Git root or cwd) and initializes `HCP/state` via `ProjectStateStore.ensure()` on the first turn, so a fresh repo starts empty and simply accumulates continuity as work proceeds.
 
 `hcp setup` uses the runtime assets packaged with HCP. By default it:
 
 - installs the `hcp-runtime` Hermes plugin and asks Hermes to enable it;
 - installs the HCP skills and skill bundles;
 - merges the **balanced** HCP identity block into `SOUL.md` without deleting existing user-authored personality text;
-- initializes project-local structured continuity under `.hcp/state/`;
+- initializes/ensures project-local structured continuity under `.hcp/state/` (auto-on-first-turn for any new Git repo, no per-repo setup required);
 - installs and selects `hcp-continuity`, a thin subclass of Hermes' built-in `ContextCompressor` that supplies structured HCP state as compaction grounding;
 - leaves an existing project `.hermes.md` alone unless `--project-context` is explicitly requested.
 

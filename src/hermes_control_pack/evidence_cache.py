@@ -149,7 +149,10 @@ class EvidenceCache:
 
     def invalidate(self, tool_name: str | None = None, project_root: str | None = None) -> int:
         """Remove matching entries. Returns count removed."""
-        target_project = project_root or self.project_root
+        if project_root is not None:
+            target_project = str(Path(project_root).expanduser().resolve())
+        else:
+            target_project = self.project_root
         with self.lock:
             entries = self._read_all()
             kept = []

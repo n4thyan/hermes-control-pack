@@ -90,6 +90,45 @@ class EvidenceCacheTests(unittest.TestCase):
         # cache2 should still have its entry
         self.assertIsNotNone(cache2.lookup("read_file", {"path": "/tmp/b.py"}))
 
+    def test_invalidate_normalizes_equivalent_project_root(self):
+        """invalidate(project_root=...) must canonicalize the path the same way
+        __init__ does. On Windows the caller-supplied string can be textually
+        different from the canonical stored form (symlinks, trailing slashes, ./).
+        This makes the project-root invariant explicit and platform-independent.
+        """
+        cache = EvidenceCache(str(self.project_dir))
+        cache.store("read_file", {"path": "/tmp/a.py"}, "output1")
+
+        # Equivalent but textually different forms must still match after
+        # canonicalization (the defect that broke Windows CI).
+        self._invalidate_and_assert(cache, str(self.project_dir) + "/.", "with-dot-slash")
+        self._invalidate_and_assert(cache, str(self.project_dir) + "/", "trailing-slash")
+
+        # On case-insensitive filesystems (Windows/macOS default), a case-variant
+        # form must also canonicalize to the same stored root. On case-sensitive
+        # filesystems (Linux default) an uppercase path is a genuinely different
+        # path and must NOT match — so we only assert equivalence where it holds.
+        import sys
+        if sys.platform == "win32" or (sys.platform == "darwin" and Path("/tmp").exists()):
+            self._invalidate_and_assert(cache, str(self.project_dir).upper(), "case-variant")
+
+        # A genuinely different project root must NOT invalidate cache1's entries.
+        cache.store("read_file", {"path": "/tmp/a.py"}, "output1")
+        other = self.tmpdir / "other"
+        other.mkdir()
+        before = cache.lookup("read_file", {"path": "/tmp/a.py"})
+        cache.invalidate(project_root=str(other))
+        after = cache.lookup("read_file", {"path": "/tmp/a.py"})
+        self.assertIsNotNone(before)
+        self.assertEqual(before, after)
+
+    def _invalidate_and_assert(self, cache, raw_root, label):
+        # Re-store the entry (previous assertions may have invalidated it)
+        cache.store("read_file", {"path": "/tmp/a.py"}, "output1")
+        cache.invalidate(project_root=raw_root)
+        result = cache.lookup("read_file", {"path": "/tmp/a.py"})
+        self.assertIsNone(result, f"failed for {label}: invalidate({raw_root!r}) did not clear the entry")
+
     def test_factory_get_cache(self):
         cache = get_cache(str(self.project_dir))
         self.assertEqual(cache.project_root, str(Path(self.project_dir).resolve()))
