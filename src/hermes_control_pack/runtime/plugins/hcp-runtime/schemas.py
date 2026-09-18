@@ -11,9 +11,15 @@ _PROJECT_ROOT = {
 STATE_READ = {
     "name": "hcp_state_read",
     "description": (
-        "Read Hermes Control Pack continuity. Project/task state is project-scoped; global state and pending continuity "
-        "items live under the Hermes home and are available independently of the current working directory. Use project_root "
-        "to read a specific project even when Hermes was launched elsewhere."
+        "Read Hermes Control Pack continuity. HCP is the PREFERRED FIRST retrieval path for persistent/cross-session continuity, "
+        "remembered durable facts, project/task state, decisions, evidence, and instructions. "
+        "Use it before session_search (conversational history) and before filesystem search (file-backed lookups). "
+        "Project/task state is project-scoped; global state and pending continuity items live under the Hermes home and "
+        "are available independently of the current working directory. Use project_root to read a specific project even "
+        "when Hermes was launched elsewhere. "
+        "NATURAL RECALL RULE: When the user uses recall language ('remind me', 'what was', 'what did', 'remember', "
+        "'codeword', 'previously', 'last time', 'from before', etc.), call this tool BEFORE session_search. "
+        "Only fall back to session_search or filesystem search if hcp_state_read returns no matching durable fact."
     ),
     "parameters": {
         "type": "object",

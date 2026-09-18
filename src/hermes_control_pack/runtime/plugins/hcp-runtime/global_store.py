@@ -59,6 +59,52 @@ def _normalize_message(value: str) -> str:
     return " ".join(str(value or "").casefold().split())
 
 
+_RECALL_PATTERNS = (
+    "remind me",
+    "remember",
+    "what was",
+    "what did",
+    "what were",
+    "what is the codeword",
+    "codeword",
+    "what does",
+    "tell me what",
+    "recall",
+    "previously",
+    "earlier you",
+    "you said",
+    "you told",
+    "you mentioned",
+    "you noted",
+    "did you say",
+    "did we",
+    "where did",
+    "when did",
+    "which codeword",
+    "cross-session",
+    "persistent fact",
+    "saved instruction",
+    "last time",
+    "from before",
+    "from our",
+)
+
+
+def _looks_like_recall_request(user_message: str) -> bool:
+    """Detect natural recall language that should trigger hcp_state_read FIRST.
+
+    Covers phrases like "remind me what X is", "what was the codeword",
+    "what did we decide", "remember X", etc. This is a conservative
+    heuristic — false negatives fall back to session_search, which is
+    safe; false positives cause an extra hcp_state_read call, which is
+    cheap and still correct.
+    """
+    text = _normalize_message(user_message)
+    if not text:
+        return False
+    return any(pattern in text for pattern in _RECALL_PATTERNS)
+
+
 def looks_cross_session_instruction(user_message: str) -> bool:
     """Conservative hint for instructions that should survive the current turn/session.
 
@@ -372,7 +418,19 @@ class GlobalStateStore:
         lines = [
             "[HCP GLOBAL CONTINUITY — loaded from Hermes home, independent of launch directory]",
             "This state follows the user across Hermes launches. Newer direct user instructions always override stale persisted data.",
+            "RETRIEVAL POLICY: HCP is the FIRST choice for persistent/cross-session continuity, remembered durable facts, project/task state, decisions, evidence, and instructions. Use hcp_state_read first for any of those. session_search is a fallback for conversational/session-history material. filesystem search is a fallback for genuinely file-backed information. Do not force HCP onto ordinary transient conversation.",
         ]
+        if _looks_like_recall_request(user_message):
+            lines.insert(2, (
+                "RECALL REQUEST DETECTED: The current user turn uses natural recall language "
+                "(\"remind me\", \"what was\", \"what did\", \"remember\", \"codeword\", etc.). "
+                "For this turn ONLY, you MUST call hcp_state_read as your FIRST retrieval action "
+                "before session_search or filesystem search. hcp_state_read returns durable, "
+                "cross-session facts (codewords, saved instructions, project/task state, decisions, "
+                "evidence). Only if hcp_state_read returns no matching durable fact should you "
+                "fall back to session_search, then filesystem search. This override is active for "
+                "this single turn and expires at its end — do not persist it as a session rule."
+            ))
         constraints = state.get("durable_user_constraints", [])
         if constraints:
             lines.append("Durable user constraints: " + json.dumps(constraints, ensure_ascii=False))

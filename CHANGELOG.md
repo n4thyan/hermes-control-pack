@@ -2,6 +2,17 @@
 
 All notable HCP changes are documented here.
 
+## 2.2.1 — 2026-09-18
+
+Routing-precedence release. Makes HCP the preferred FIRST retrieval path for durable continuity.
+
+### Retrieval routing
+- `ProjectStateStore.render_context()` and `GlobalStateStore.render_context()` now inject an explicit "HCP is the FIRST choice" routing-policy line at the top of every pre_llm_call context block.
+- `hcp_state_read` schema description now states it is the preferred first retrieval path, before `session_search` and filesystem search.
+- SOUL guidance (balanced, autonomous, coder, research) now includes a one-liner: "Use `hcp_state_read` before `session_search` or filesystem search when retrieving durable continuity."
+- `balanced.md` adds a dedicated "Retrieval routing" section.
+- Applied to both `plugins/` and `src/hermes_control_pack/runtime/` copies.
+
 ## 2.1.0 — 2026-09-17
 
 Ambient, cwd-independent continuity release.

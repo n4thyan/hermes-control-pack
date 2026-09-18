@@ -324,6 +324,7 @@ class ProjectStateStore:
         task = snapshot["task"]
         lines = [
             "[HCP STRUCTURED CONTINUITY — persisted outside conversation history]",
+            "RETRIEVAL POLICY: HCP is the FIRST choice for persistent/cross-session continuity, remembered durable facts, project/task state, decisions, evidence, and instructions. Use hcp_state_read first for any of those. session_search is a fallback for conversational/session-history material. filesystem search is a fallback for genuinely file-backed information. Do not force HCP onto ordinary transient conversation.",
             f"Project root: {snapshot['project_root']}",
             f"Task objective: {task.get('objective') or '(not set)'}",
             f"Task phase: {task.get('phase') or '(not set)'}",

@@ -32,7 +32,7 @@ class StartupStatusLineTests(unittest.TestCase):
     def tearDown(self):
         self._tmpdir.cleanup()
 
-    def _setup_plugin(self, version="2.2.0"):
+    def _setup_plugin(self, version="2.2.1"):
         plugin_dir = self.home / "plugins" / "hcp-runtime"
         plugin_dir.mkdir(parents=True)
         (plugin_dir / "plugin.yaml").write_text(
@@ -57,8 +57,33 @@ class StartupStatusLineTests(unittest.TestCase):
     def test_line_contains_version_and_enabled(self):
         self._setup_plugin()
         line = build_startup_line(self.home)
-        self.assertIn("HCP 2.2.0", line)
+        self.assertIn("HCP 2.2.1", line)
         self.assertIn("ENABLED", line)
+
+    def test_version_agreement_bundled_and_installed(self):
+        """The built-in package __version__ must agree with plugin.yaml version.
+
+        This prevents the 'installed 2.2.1 vs bundled 2.2.0' warning that
+        occurs when __init__.py is stale relative to pyproject.toml/plugin.yaml.
+        """
+        import importlib.util
+        pkg_root = Path(__file__).resolve().parents[1]
+        pkg_init = pkg_root / "src" / "hermes_control_pack" / "__init__.py"
+        spec = importlib.util.spec_from_file_location("hcp_version_check", pkg_init)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        bundled = mod.__version__
+        # plugin.yaml in the canonical source tree:
+        yaml_path = pkg_root / "src" / "hermes_control_pack" / "runtime" / "plugins" / "hcp-runtime" / "plugin.yaml"
+        if not yaml_path.exists():
+            yaml_path = pkg_root / "plugins" / "hcp-runtime" / "plugin.yaml"
+        for line in yaml_path.read_text(encoding="utf-8").splitlines():
+            if line.startswith("version:"):
+                installed = line.split(":", 1)[1].strip()
+                break
+        else:
+            self.fail("no version: line in plugin.yaml")
+        self.assertEqual(bundled, installed, f"__version__ ({bundled}) != plugin.yaml version ({installed})")
 
     def test_synced_runtime(self):
         self._setup_plugin()
@@ -69,7 +94,7 @@ class StartupStatusLineTests(unittest.TestCase):
     def test_version_mismatch_warning(self):
         self._setup_plugin(version="2.1.0")
         line = build_startup_line(self.home)
-        self.assertIn("WARNING: installed 2.1.0 vs bundled 2.2.0", line)
+        self.assertIn("WARNING: installed 2.1.0 vs bundled 2.2.1", line)
 
     def test_not_installed_warning(self):
         # No plugin at all
