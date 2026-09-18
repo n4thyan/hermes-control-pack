@@ -1,8 +1,8 @@
 # Hermes Control Pack
 
-**Hermes Control Pack 2.1 — Install once. Use Hermes anywhere.**
+**Hermes Control Pack 2.2.1 — Install once. Use Hermes anywhere.**
 
-[![HCP 2.1](https://img.shields.io/badge/HCP-2.1-purple?style=flat-square)](https://github.com/n4thyan/hermes-control-pack)
+[![HCP 2.2.1](https://img.shields.io/badge/HCP-2.2.1-purple?style=flat-square)](https://github.com/n4thyan/hermes-control-pack)
 [![Tests](https://img.shields.io/github/actions/workflow/status/n4thyan/hermes-control-pack/tests.yml?style=flat-square&label=tests)](https://github.com/n4thyan/hermes-control-pack/actions/workflows/tests.yml)
 [![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.13-blue?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Windows](https://img.shields.io/badge/Windows-supported-success?style=flat-square&logo=windows)](https://github.com/n4thyan/hermes-control-pack/actions/workflows/tests.yml)
@@ -14,9 +14,9 @@ A research-driven agent-harness augmentation layer for [NousResearch/Hermes Agen
 
 HCP makes whichever model Hermes uses **more coherent and reliable during real work** — understand before editing, preserve your objective across sessions, recover from failed approaches, verify claims before finishing, and resume after compression or a new session without reconstructing the project from scratch.
 
-## What HCP 2.1 does differently
+## What HCP 2.2.1 does differently
 
-> **Install HCP once, then use Hermes from any directory.** HCP 2.1 no longer requires you to launch Hermes from inside the `hermes-control-pack` clone.
+> **Install HCP once, then use Hermes from any directory.** HCP 2.2.1 does not require you to launch Hermes from inside the `hermes-control-pack` clone.
 
 After installation, HCP runtime assets live inside your Hermes installation/profile, and global continuity state lives under `HERMES_HOME` — **not** inside the HCP repository. The HCP Git clone is the **source/development** repository; it does not need to be your working directory for normal use.
 
@@ -209,7 +209,7 @@ Install HCP once and keep using Hermes as usual. The visible differences should 
 
 In other words: **same model, better operating discipline around the model.**
 
-## HCP 2.1 architecture details
+## HCP 2.2.1 architecture details
 
 ### Global continuity (`🌐` blue/purple)
 
@@ -229,16 +229,19 @@ In other words: **same model, better operating discipline around the model.**
 - **project-scoped pending instructions** that activate only inside their project
 - **project state AUGMENTS global state** — never replaces it
 
-### Other HCP 2.1 changes
+### Other HCP 2.2.1 changes
 
 - ambient pre-turn continuity bootstrap via `pre_llm_call` hook
 - packaged runtime/source synchronization between `plugins/` and `src/hermes_control_pack/runtime/`
 - the project_root ambient routing bug fixed during final release work (`project_root=""` → resolved via session→project mapping)
 - expanded tests for launch-directory independence, project-scoped isolation, and cross-session behavior
+- **HCP-first routing for durable recall** — natural recall language (e.g. "remind me", "what was", "what did we decide", "remember", "codeword", "previously", "last time", "from before") is routed to `hcp_state_read` first, before `session_search` or filesystem search
+- **startup status banner**: on a healthy launch Hermes prints `HCP 2.2.1 ENABLED | runtime synced | continuity ready`
+- **routing policy regression tests** that assert the retrieval-precedence text is present on every injection surface (project state store, global state store, schema description, SOUL overlays)
 
 ## HCP 2.0 kernel preserved
 
-HCP 2.1 keeps the proven HCP 2.0 project kernel intact:
+HCP 2.2.1 keeps the proven HCP 2.0 project kernel intact:
 
 - `PROJECT_STATE`, `TASK_STATE`, `DECISION_LOG`, `EVIDENCE_LEDGER`, `TRACE` stores
 - four model-callable tools: `hcp_state_read`, `hcp_state_update`, `hcp_decision_record`, `hcp_evidence_record`
@@ -264,6 +267,19 @@ HCP injects a bounded state summary into each turn. The optional continuity engi
 ### Cross-session behavior
 
 A fresh Hermes process can read the project-scoped HCP state and recover the active objective, previous phase, constraints, recorded decisions, evidence, and next step. That is the mechanism intended to make long-running work survive a full process restart without relying on the model to reconstruct everything from vague conversational memory.
+
+### HCP-first retrieval model (2.2.1)
+
+HCP 2.2.1 makes `hcp_state_read` the **preferred first retrieval path** for anything that looks like a request to recover durable, cross-session continuity:
+
+- natural-recall wording such as **"remind me"**, **"what was"**, **"what did we decide"**, **"remember"**, **"codeword"**, **"previously"**, **"last time"**, **"from before"** is routed to `hcp_state_read` before any other tool;
+- `hcp_state_read` returns durable, cross-session facts (codewords, saved instructions, project/task state, decisions, evidence);
+- **session_search** is the fallback for ordinary conversational / session-history material;
+- **filesystem search** is the fallback for genuinely file-backed lookups.
+
+HCP does **not** replace Hermes session history — it is durable structured continuity with session_search fallback. The model still searches the full conversation for transient, in-session context; HCP handles the cross-session, persisted-fact layer.
+
+Verified fresh-process behavior: on a new Hermes launch with no prompting about where to look, a natural recall prompt is routed to `hcp_state_read` as the first continuity tool, and `hcp_state_read` returns the persisted fact directly.
 
 ## Runtime completion gates
 
